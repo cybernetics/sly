@@ -128,7 +128,17 @@ var slick = (function(){
 	function slick(context, expression){
 		slick.buffer = {};
 		var parsedSelectors = SubtleSlickParse(expression);
-		var items = (searchers[parsedSelectors.type] || searchers['default'])(context, parsedSelectors);
+		var items = [];
+		for (var SN=0, parsedSelector; parsedSelector = parsedSelectors[SN]; SN++){
+			for (var i = parsedSelector.length - 1; i >= 0; i--){
+				var this_simpleSelector = parsedSelector[i];
+				
+				these_items = (searchers[parsedSelectors.type] || searchers['default'])(context, this_simpleSelector);
+				
+			}
+			if (!items.length) items = these_items;
+			else for (var i=0, this_item; this_item = these_items[i++];) items.push(this_item);
+		}
 		return items;
 	};
 	
@@ -186,70 +196,11 @@ var slick = (function(){
 		};
 	})();
 	
+	// What can this browser do?
+	getElementsByClassName = (document.getElementsByClassName && document.getElementsByClassName.toString().indexOf('[native code]')+1);
+	
 	// searchers
 	var searchers = {
-		
-		tag: function(context, parsedSelectors){
-			return context.getElementsByTagName(parsedSelectors[0][0].tag);
-		},
-		
-		id: function(context, parsedSelectors){
-			return [context.getElementById(parsedSelectors[0][0].id)];
-		},
-		
-		tagid: function(context, parsedSelectors){
-			var selector = parsedSelectors[0][0];
-			var node = context.getElementById(selector.id);
-			if (selector.tag && selector.tag != '*' && matchNodeByTag(node, selector.tag)) return [node];
-			return [];
-		},
-		
-		attrib: function(context, parsedSelectors){
-			var selector = parsedSelectors[0][0];
-			var items = [];
-			var nodes = context.getElementsByTagName(selector.tag||'*');
-			
-			for (var i=0, node; node = nodes[i++];) {
-				matchNodeByAttribute(node, selector.name, selector.operator, selector.value) && items.push(node);
-			}
-			
-			return items;
-		},
-		
-		'class': function(context, parsedSelectors){
-			var selector = parsedSelectors[0][0];
-			var nodes;
-			if (getElementsByClassName && context.getElementsByClassName){
-				nodes = context.getElementsByClassName(selector.parsed.classes[0]);
-				if (!selector.tag || selector.tag == '*') return nodes;
-			}
-			var items = [];
-			var matchTag = selector.tag && selector.tag != '*';
-			nodes = nodes || context.getElementsByTagName(selector.tag||'*');
-			for (var i=0, node; node = nodes[i++];) {
-				if (matchTag && !matchNodeByTag(node, selector.tag)) continue;
-				matchNodeByClass(node, selector.parsed.classes[0]) && items.push(node);
-			}
-			return items;
-		},
-		
-		'classclass': function(context, parsedSelectors){
-			var selector = parsedSelectors[0][0];
-			var items = [];
-			var nodes;
-			if (getElementsByClassName && context.getElementsByClassName)
-				nodes = context.getElementsByClassName(selector.parsed.classes[0]);
-			else
-				nodes = context.getElementsByTagName(selector.tag||'*');
-			
-			var matchTag = !getElementsByClassName && selector.tag && selector.tag != '*';
-			for (var i=0, node; node = nodes[i++];) {
-				if (matchTag && !matchNodeByTag(node, selector.tag)) continue;
-				matchNodeByClass(node, selector.parsed.classes[1]) && items.push(node);
-			}
-			return items;
-		},
-		
 		'default': function(context, parsedSelectors){
 			
 			var items = [];
@@ -274,9 +225,97 @@ var slick = (function(){
 			return items;
 		}
 	};
+	
+	slick.addSearcher('default', function(context, parsedSelectors){
+	});
+	
+	/*
+	slick.addSearcher('tag', function(context, parsedSelectors){
+		return context.getElementsByTagName(parsedSelectors[0][0].tag);
+	});
+	slick.addSearcher('id', function(context, parsedSelectors){
+		return [context.getElementById(parsedSelectors[0][0].id)];
+	});
+	slick.addSearcher('tagid', function(context, parsedSelectors){
+		var selector = parsedSelectors[0][0];
+		var node = context.getElementById(selector.id);
+		if (selector.tag && selector.tag != '*' && matchNodeByTag(node, selector.tag)) return [node];
+		return [];
+	});
+	slick.addSearcher('attrib', function(context, parsedSelectors){
+		var selector = parsedSelectors[0][0];
+		var items = [];
+		var nodes = context.getElementsByTagName(selector.tag||'*');
+		
+		for (var i=0, node; node = nodes[i++];) {
+			matchNodeByAttribute(node, selector.name, selector.operator, selector.value) && items.push(node);
+		}
+		
+		return items;
+	});
+	*/
+	
+	// pass in a bunch of nodes and the rules for chucking them
+	function filterNodes(nodes, parsedSimpleSelector, funks){
+		var items = [];
+		for (var i=0, node; node = nodes[i++];) {
+			items.push(node);
+			for (var i=0, funk; funk = funks[i]; i++){
+				if (!funk(node, parsedSimpleSelector)){
+					items.pop();
+					break;
+				}
+			}
+		}
+		return items;
+	};
+	
+	function getElements(context, parsedSimpleSelector){
+		parsedSimpleSelector
+	};
+	function getParent(context, parsedSimpleSelector){
+		parsedSimpleSelector
+	};
+	
+	/*
+	slick.addSearcher('class', function(context, parsedSelectors){
+		return getElements(context, parsedSelectors)
+		// var selector = parsedSelectors[0][0];
+		// var nodes;
+		// if (getElementsByClassName && context.getElementsByClassName){
+		// 	nodes = context.getElementsByClassName(selector.parsed.classes[0]);
+		// 	if (!selector.tag || selector.tag == '*') return nodes;
+		// }
+		// var items = [];
+		// var matchTag = selector.tag && selector.tag != '*';
+		// nodes = nodes || context.getElementsByTagName(selector.tag||'*');
+		// for (var i=0, node; node = nodes[i++];) {
+		// 	if (matchTag && !matchNodeByTag(node, selector.tag)) continue;
+		// 	matchNodeByClass(node, selector.parsed.classes[0]) && items.push(node);
+		// }
+		// return items;
+	});
+	
+	slick.addSearcher('classclass', function(context, parsedSelectors){
+		var selector = parsedSelectors[0][0];
+		var items = [];
+		var nodes;
+		if (getElementsByClassName && context.getElementsByClassName)
+			nodes = context.getElementsByClassName(selector.parsed.classes[0]);
+		else
+			nodes = context.getElementsByTagName(selector.tag||'*');
+		
+		var matchTag = !getElementsByClassName && selector.tag && selector.tag != '*';
+		for (var i=0, node; node = nodes[i++];) {
+			if (matchTag && !matchNodeByTag(node, selector.tag)) continue;
+			matchNodeByClass(node, selector.parsed.classes[1]) && items.push(node);
+		}
+		return items;
+	});
 	searchers.tagattrib = searchers.attrib;
 	searchers.tagclass = searchers['class'];
 	searchers.tagclassclass = searchers['classclass'];
+	*/
 	
 	//pseudos
 	
@@ -527,10 +566,7 @@ var slick = (function(){
 		return splitters[' ']([], context, tag, id, parsed);
 	};
 	
-	getElementsByClassName = (document.getElementsByClassName && document.getElementsByClassName.toString().indexOf('[native code]')+1);
-	
 	// splitters
-	
 	var splitters = {
 
 		' ': function allChildren(found, node, tag, id, parsed){
