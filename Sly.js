@@ -6,14 +6,6 @@ License:
 	MIT-style license.
 */
 
-/**
- * @todo
- *
- * Fixing getById
- * Fixing Attributes
- * Fixing dups
- */
-
 var Sly = {
 
 	// available features
@@ -41,7 +33,6 @@ var Sly = {
 			if (results) return results;
 		}
 
-
 		var elements = [], merged = {}, buffer = {};
 
 		var check = Sly.checkUId;
@@ -58,24 +49,6 @@ var Sly = {
 
 			return Array.prototype.slice.call(elements);
 		};
-
-		/*
-		var merge = function() {
-			if (results) return results.concat(elements);
-			return Array.prototype.slice.call(elements);
-		};
-
-		if (results) {
-			var getUId = Sly.getUId;
-			for (var i = 0, j = elements.length; i < j; i++) {
-				var uid = getUId(elements[i]);
-				if (!uniquesAll[uid]) {
-					uniquesAll[uid] = true;
-					results.push(elements[i]);
-				}
-			}
-		}
-		*/
 
 		var parsed = Sly.parse(selectors, Sly.compute);
 
@@ -96,7 +69,7 @@ var Sly = {
 				}
 
 			} else { // with prepended combinators
-				var found = [], uniques = {}, combinator = Sly.combinator[selector.combinator];
+				var found = [], uniques = {}, combinator = Sly.Combinators[selector.combinator];
 				for (var k = 0, l = elements.length; k < l; k++) found = combinator(found, elements[k], selector, buffer, uniques);
 				elements = found;
 			}
@@ -341,7 +314,7 @@ Sly.compute = function(selector) {
 			}
 			return [];
 		};
-	} else
+	}
 	
 	if (tag) {
 		match = chain(match, handlers.matchTag, node);
@@ -354,8 +327,6 @@ Sly.compute = function(selector) {
 		};
 	}
 	*/
-
-	
 
 	selector.match = match || simple;
 	selector.search = search || function(item) {
@@ -370,7 +341,7 @@ Sly.compute = function(selector) {
 
 // combinators
 
-Sly.combinator = {
+Sly.Combinators = {
 
 	' ': function(found, self, selector, buffer, uniques) {
 		var items = selector.search(self), check = Sly.checkUId;
