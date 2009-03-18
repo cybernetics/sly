@@ -117,7 +117,7 @@ Sly.checkUId = (window.ActiveXObject) ? function(item, uniques){
 
 (function() {
 
-var parser = (/[\w\u00c0-\uFFFF-][\w\u00c0-\uFFFF-]*|[#.][\w\u00c0-\uFFFF-]+|\s(?=[[\w\u00c0-\uFFFF*#.-])|[+>~,]\s*|\[([\w\u00c0-\uFFFF-]+)(?:([!*^$~|]?=)(?:"([^"]*)"|'([^']*)'|([^\]]*)))?]|:([-\w\u00c0-\uFFFF]+)(?:\((?:"([^"]*)"|'([^']*)'|([^)]*))\))?/g);
+var parser = (/[\w\u00c0-\uFFFF-][\w\u00c0-\uFFFF-]*|[#.][\w\u00c0-\uFFFF-]+|\s(?=[[\w\u00c0-\uFFFF*#.-])|([,+>~$^±])\s*|\[([\w\u00c0-\uFFFF-]+)(?:([!*^$~|]?=)(?:"([^"]*)"|'([^']*)'|([^\]]*)))?]|:([-\w\u00c0-\uFFFF]+)(?:\((?:"([^"]*)"|'([^']*)'|([^)]*))\))?/g);
 
 /**
 	The regexp is a group of every possible selector part including combinators.
@@ -163,14 +163,14 @@ var Selector = function(combinator) {
 Sly.parse = function(sequence, compute) {
 	compute = compute || lambda;
 	
-	var cache = {}; // compute.$cache || (compute.$cache = {});
+	var cache = compute.$cache || (compute.$cache = {});
 	if (cache[sequence]) return cache[sequence];
 
 	var parsed = [], current = new Selector();
+	current.first = true;
 	
 	var refresh = function(combinator) {
-		if (current) {
-			// current.ident.length--;
+		if (current && current.first) {
 			parsed.push(compute(current));
 		}
 		current = new Selector(combinator);
@@ -180,7 +180,6 @@ Sly.parse = function(sequence, compute) {
 
 	while ((match = parser.exec(sequence))) {
 		$0 = match[0];
-		// current.ident.push($0);
 		
 		switch ($0.charAt(0)) {
 			case '.':
@@ -191,25 +190,31 @@ Sly.parse = function(sequence, compute) {
 				break;
 			case '[':
 				current.attributes.push({
-					name: match[1],
-					operator: match[2],
-					value: match[3] || match[4] || match[5]
+					name: match[2],
+					operator: match[3],
+					value: match[4] || match[5] || match[6]
 				});
 				break;
 			case ':':
 				current.pseudos.push({
-					name: match[6],
-					argument: match[7] || match[8] || match[9]
+					name: match[7],
+					argument: match[8] || match[9] || match[10]
 				});
 				break;
 			case ',':
 				refresh();
-				break;
-			case ' ': case '+': case '>': case '~':
-				refresh($0.charAt(0));
-				break;
-			default: if ($0 != '*') current.tag = $0;
+				continue;
+			case ' ':
+				refresh(' ');
+				continue;
+			default:
+				if (match[1]) {
+					refresh(match[1]);
+					continue;
+				}
+				current.tag = $0;
 		}
+		// current.ident.push($0);
 	}
 	parsed.push(compute(current));
 
@@ -274,7 +279,6 @@ Sly.compute = function(selector) {
 	var i, j;
 
 	var classes = selector.classes;
-
 	for (i = 0, j = classes.length; i < j; i++) {
 		match = chain(match, handlers.matchClass, ' ' + classes[i] + ' ');
 	}
