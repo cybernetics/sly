@@ -1,15 +1,4 @@
-A pure-JavaScript CSS selector engine designed to be easily dropped in to a host library.
+# Sly - The JavaScript Selector Engine
 
-More information:
- http://sizzlejs.com/
-
-Discussion:
-  http://groups.google.com/group/sizzlejs
-
-Documentation:
-	http://wiki.github.com/jeresig/sizzle
-
-Testing Sizzle:
- - Run 'make': this will create a jquery-sizzle.js file that contains jQuery with the Sizzle selector engine.
- - Open test/index.html in your browser to run the tests.
- - The actual unit tests are in test/unit/selectors.js.
+Cutting-edge JavaScript helper for parsing CSS3 selectors to find
+and match DOM elements. A framework independent drop-in solution.

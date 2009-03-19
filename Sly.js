@@ -1,10 +1,15 @@
-/*
-Script: Sly.js
-	Advanced and fast CSS3 querying capabilities for targeting elements.
-
-License:
-	MIT-style license.
-*/
+/**
+ * Sly - Advanced and fast CSS3 querying capabilities for targeting elements.
+ *
+ * Credits: Combinator and pseudo sets are based on MooTools <http://mootools.net.
+ *
+ * @version: preview
+ *
+ * @author: Harald Kirschner <http://digitarald.de>
+ * @copyright: Authors
+ *
+ * @license: MIT-style license.
+ */
 
 var Sly = {
 
@@ -19,37 +24,18 @@ var Sly = {
 		elementsByClass: !!(document.getElementsByClassName)
 	},
 
+	/**
+	 * Sly.getAttribute()
+	 *
+	 * Override that with your favourite framework.
+	 */
+
 	getAttribute: function(item, name) {
 		if (name == 'class') return item.className;
 		return item.getAttribute(name, 2);
 	}
 
 };
-
-/**
- * Uid helper
- */
-
-(function() {
-
-var stack = 1;
-
-var getUid = Sly.getUid = (window.ActiveXObject) ? function(item){
-	return uid = (item.$slyUid || (item.$slyUid = {id: stack++})).id;
-} : function(item){
-	return uid = item.$slyUid || (item.$slyUid = stack++);
-};
-
-// not D.R.Y. but fast
-Sly.checkUid = function(item, uniques){
-	var uid = getUid(item);
-	return (uniques[uid]) ? null : (uniques[uid] = true);
-};
-
-})();
-
-
-// the magic parser
 
 /**
  * Sly.parse(sequence, compute)
@@ -189,6 +175,7 @@ Sly.parse = function(sequence, compute) {
  *   simple: Set when matchAux is not needed.
  * }
  */
+
 
 (function() {
 
@@ -374,6 +361,29 @@ Sly.compute = function(selector) {
 })();
 
 
+/**
+ * Sly.checkUid(element), Sly.checkUid(element, uniques)
+ *
+ * Uid helper, to identify and merge elements.
+ */
+
+(function() {
+
+var next = 1;
+
+var getUid = Sly.getUid = (window.ActiveXObject) ? function(item){
+	return uid = (item.$slyUid || (item.$slyUid = {id: next++})).id;
+} : function(item){
+	return uid = item.$slyUid || (item.$slyUid = next++);
+};
+
+// not D.R.Y. but fast
+Sly.checkUid = function(item, uniques){
+	var uid = getUid(item);
+	return (uniques[uid]) ? null : (uniques[uid] = true);
+};
+
+})();
 
 
 /**
