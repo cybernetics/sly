@@ -15,7 +15,7 @@ var Sly = {
 	 */
 
 	feature: {
-		querySelector: !!(document.querySelectorAll),
+		querySelector: false && !!(document.querySelectorAll),
 		elementsByClass: !!(document.getElementsByClassName)
 	},
 
@@ -352,16 +352,36 @@ Sly.compute = function(selector) {
 })();
 
 
+(function() {
+
+	var toArray = function(elements) {
+		return Array.prototype.slice.call(elements);
+	};
+
+	try {
+			toArray(document.documentElement.childNodes);
+	} catch (e) {
+		toArray = function(elements) {
+			if (elements instanceof Array) return elements;
+			var i = elements.length, results = new Array(i);
+			while (i--) results[i] = elements[i];
+			return results;
+		};
+	}
+
+	Sly.toArray = toArray;
+
+})();
+
+
+
+
 /**
- * Sly.search(sequence, context, limit)
- *
- * Crawler will bail out when the limit is reached, if 1 is given, it'll
- * only return the first element.
+ * Sly.search(sequence, context)
  */
 
-Sly.search = function(sequence, context/*, limit*/) {
+Sly.search = function(sequence, context) {
 	context = context || document;
-	/*limit = (limit) ? ((typeof(limit) == 'number') ? limit : 1) : false;*/
 
 	var results;
 
@@ -372,7 +392,7 @@ Sly.search = function(sequence, context/*, limit*/) {
 			var custom = '#' + context.id + ' ' + sequence;
 		}
 		try {
-			results = Array.prototype.slice.call(context.querySelectorAll(custom || sequence));
+			results = Sly.toArray.call(context.querySelectorAll(custom || sequence));
 		} catch(e) {}
 		if (custom) context.id = oldId;
 		if (results) return results;
@@ -384,32 +404,30 @@ Sly.search = function(sequence, context/*, limit*/) {
 
 	var merge = function() {
 		if (!results) {
-			return Array.prototype.slice.call(elements);
+			return Sly.toArray(elements);
 		} else if (elements.length) {
 			for (var i = 0, item; (item = elements[i]); i++) {
 				if (check(item, merged)) results.push(item);
 			}
 		}
 		return results;
-		/*
-		if (limit && (limit == 1 || limit < results.length)) {
-			done = true;
-			return (limit == 1) ? results[0] : results.slice(0, limit);
-		}
-		*/
 	};
 
 	var parsed = Sly.parse(sequence, Sly.compute);
 
 	for (var i = 0, selector; (selector = parsed[i]); i++) {
+		var combinator = selector.combinator;
 
-		if (i > 0 && selector.first) results = merge(); // must be one after a comma
+		if (selector.first) { // must be one after a comma
+			if (i > 0) results = merge();
+			if (combinator) elements = [context]; // allows combinators before selectors
+		}
 
-		if (selector.first) { // first without prepended combinator
+		if (!combinator) { // without prepended combinator
 			elements = Sly.combinator[' ']([], context, selector, state);
 		} else { // with prepended combinators
-			var found = [], uniques = {}, combinator = Sly.combinator[selector.combinator || ' '];
-			for (var k = 0, l = elements.length; k < l; k++) found = combinator(found, elements[k], selector, state, uniques);
+			var found = [], uniques = {}, concat = Sly.combinator[selector.combinator || ' '];
+			for (var k = 0, l = elements.length; k < l; k++) found = concat(found, elements[k], selector, state, uniques);
 			elements = found;
 		}
 	}
