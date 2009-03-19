@@ -1,7 +1,11 @@
 /**
- * Sly - Advanced and fast CSS3 querying capabilities for targeting elements.
+ * Sly - The JavaScript Selector Engine
+ *
+ * Cutting-edge JavaScript helper for parsing CSS3 selectors to find
+ * and match DOM elements.
  *
  * Credits: Combinator and pseudo sets are based on MooTools <http://mootools.net.
+ * Original code base was created for MooTools 1.2
  *
  * @version: preview
  *

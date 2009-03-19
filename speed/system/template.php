@@ -1,3 +1,6 @@
+<?php
+	$template = '../template.html';
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
@@ -15,6 +18,51 @@
 			return (typeof elements.length == 'function') ? elements.length() : elements.length;
 		}
 
+		var context = document;
+
+<?php	if ($_GET['special'] == 'loose'): ?>
+		window.onload = function() {
+			context = document.createElement('div');
+			context.innerHTML = document.body.innerHTML; // I feel dirty!
+			document.body.innerHTML = '';
+		};
+<?php	elseif ($_GET['special'] == 'xml'):
+				$template = '../template.xml.html';
+?>
+		// Copyright 2009 by Harald Kirschner <http://digitarald.de>
+		function createXML(text, options) {
+			options = options || {error: true};
+			var doc, root;
+
+			try {
+				if (window.ActiveXObject){
+					doc = new ActiveXObject('Microsoft.XMLDOM');
+					doc.async = false;
+					doc.preserveWhiteSpace = true;
+					doc.validateOnParse = false;
+					doc.loadXML(text);
+					if (doc.parseError.errorCode) throw new Error(doc.parseError.reason);
+					root = doc.documentElement;
+				} else if (window.DOMParser) {
+					doc = new DOMParser().parseFromString(text, (options.html) ? 'text/html' : 'text/xml');
+					root = doc.documentElement;
+					if (root.nodeName == 'parsererror') throw new Error(root.firstChild.nodeValue);
+				}
+			} catch (e) {
+				if (options.error) throw e;
+				return null;
+			}
+
+			return root;
+		}
+
+		window.onload = function() {
+			context = createXML('<div>' + document.body.innerHTML + '</div>', {error: true, html: false}); // I feel dirty!
+			document.body.innerHTML = '';
+		};
+<?php	endif; ?>
+
+
 		function test(selector){
 			try {
 				var times = [];
@@ -22,36 +70,36 @@
 				var i = 0;
 
 				times[i]={ start:new Date() };
-				var elements = <?php echo $_GET['function']; ?>(selector);
+				var elements = <?php echo $_GET['function']; ?>(selector, context);
 				times[i].end = new Date();
 
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
 
 				var end = new Date();
 				var data = { time:0, found:get_length(elements) };
@@ -80,7 +128,7 @@
 
 <body>
 
-	<?php include('../template.html');?>
+	<?php include($template);?>
 
 </body>
 </html>

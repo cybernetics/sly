@@ -12,7 +12,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 	<title>SlickSpeed Selectors Test</title>
 	<link rel="stylesheet" href="style.css" type="text/css" media="screen">
-	
+
 	<script type="text/javascript">
 		<?php
 		$selectors = explode("\n", $selectors);
@@ -21,27 +21,33 @@
 		echo "window.selectors = [$list]";
 		?>
 	</script>
-	
+
 	<script src="system/slickspeed.js" type="text/javascript"></script>
 </head>
 
 <body>
-	
+
 <div id="container">
-	
+
 	<div id="controls">
 		<a class="stop" href="#">stop tests</a>
 		<a class="start" href="#">start tests</a>
 	</div>
-	
+
 <?php include('header.html'); ?>
 
 <?php
+	$special = '';
+
+	if (isset($_GET['special']) && preg_match('/[a-z]+/', $_GET['special'])) {
+		$special = $_GET['special'];
+	}
+
 	foreach ($frameworks as $framework => $properties){
 		$include = $properties['file'];
 		$function = $properties['function'];
 		$time = time();
-		echo "<iframe name='$framework' src='system/template.php?include=$include%3F$time&function=$function&nocache=$time'></iframe>\n\n";
+		echo "<iframe name='$framework' src='system/template.php?include=$include%3F$time&function=$function&nocache=$time&special=$special'></iframe>\n\n";
 	}
 ?>
 
@@ -71,7 +77,7 @@
 			}
 		?>
 	</tbody>
-	
+
 	<tfoot id="tfoot">
 		<tr>
 		<th class="score-title"><strong>final time (less is better)</strong></th>
