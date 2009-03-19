@@ -2,7 +2,7 @@
  * Sly - The JavaScript Selector Engine
  *
  * Cutting-edge JavaScript helper for parsing CSS3 selectors to find
- * and match DOM elements.
+ * and match DOM elements. A framework independent drop-in solution.
  *
  * Credits: Combinator and pseudo sets are based on MooTools <http://mootools.net.
  * Original code base was created for MooTools 1.2
@@ -312,11 +312,7 @@ Sly.compute = function(selector) {
 			}, {});
 		} else {
 			var parser = Sly.pseudo[item.name];
-			if (!parser) {
-				match = chain(match, matchAttribute, item);
-			} else {
-				match = chain(match, parser, item.argument);
-			}
+			match = (parser) ? chain(match, parser, item.argument) : chain(match, matchAttribute, item)
 		}
 	}
 
