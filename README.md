@@ -1,18 +1,15 @@
-MooTools Slick Selector Engine
-==============================
+A pure-JavaScript CSS selector engine designed to be easily dropped in to a host library.
 
-A new standalone selector engine that is totally slick!
--------------------------------------------------------
+More information:
+ http://sizzlejs.com/
 
-### Create your own custom pseudo-classes!
-Ever want to make your own `:my-widget(rocks)` pseudoclass? Now you can!
+Discussion:
+  http://groups.google.com/group/sizzlejs
 
-### Use your own custom getAttribute code!
-EG: Use MooTool's Element.get method or jQuery's $.attr
+Documentation:
+	http://wiki.github.com/jeresig/sizzle
 
-### Use your own parser!
-Want to support XPATH selectors? JSONPath selectors? Pre-cached JS Object selctors? Just swap out the default parser and make your own.
-
-### Use the parser by itself!
-Want to integrate a CSS3 Selector parser into your own app somehow? Use the slick selector CSS3 parser by itself and get a JS Object representation of your selector.
-
+Testing Sizzle:
+ - Run 'make': this will create a jquery-sizzle.js file that contains jQuery with the Sizzle selector engine.
+ - Open test/index.html in your browser to run the tests.
+ - The actual unit tests are in test/unit/selectors.js.
