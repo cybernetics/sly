@@ -46,10 +46,16 @@ describe('Sly.parse', {
 	},
 	
 	'Should parse attributes': function() {
-		value_of(Sly.parse('[attr]')[0].attributes).should_be([{name: 'attr'}]);
-		value_of(Sly.parse('[attr][attr]')[0].attributes).should_be([{name: 'attr'}, {name: 'attr'}]);
-		value_of(Sly.parse('[attr]tag:pseudo[attr]')[0].attributes).should_be([{name: 'attr'}, {name: 'attr'}]);
-		value_of(Sly.parse('[1st-attr_0]')[0].attributes).should_be([{name: '1st-attr_0'}]);
+		value_of(Sly.parse('[attr]')[0].attributes).should_be([{name: 'attr', operator: null, value: null}]);
+		value_of(Sly.parse('[attr][attr]')[0].attributes).should_be([{name: 'attr', operator: null, value: null}, {name: 'attr', operator: null, value: null}]);
+		value_of(Sly.parse('[attr]tag:pseudo[attr]')[0].attributes).should_be([{name: 'attr', operator: null, value: null}, {name: 'attr', operator: null, value: null}]);
+		value_of(Sly.parse('[1st-attr_0]')[0].attributes).should_be([{name: '1st-attr_0', operator: null, value: null}]);
+	},
+	
+	'Should parse attributes with empy value': function() {
+		value_of(Sly.parse('[attr=]')[0].attributes).should_be([{name: 'attr', operator: '=', value: null}]);
+		value_of(Sly.parse('[attr=""]')[0].attributes).should_be([{name: 'attr', operator: '=', value: null}]);
+		value_of(Sly.parse("[attr='']")[0].attributes).should_be([{name: 'attr', operator: '=', value: null}]);
 	},
 	
 	'Should parse attributes with values': function() {
@@ -63,13 +69,18 @@ describe('Sly.parse', {
 	},
 	
 	'Should parse pseudos': function() {
-		value_of(Sly.parse(':pseudo')[0].pseudos).should_be([{name: 'pseudo'}]);
-		value_of(Sly.parse(':pseudo#id:pseudo')[0].pseudos).should_be([{name: 'pseudo'}, {name: 'pseudo'}]);
-		value_of(Sly.parse(':1st-pseudo_0')[0].pseudos).should_be([{name: '1st-pseudo_0'}]);
+		value_of(Sly.parse(':pseudo')[0].pseudos).should_be([{name: 'pseudo', value: null}]);
+		value_of(Sly.parse(':pseudo#id:pseudo')[0].pseudos).should_be([{name: 'pseudo', value: null}, {name: 'pseudo', value: null}]);
+		value_of(Sly.parse(':1st-pseudo_0')[0].pseudos).should_be([{name: '1st-pseudo_0', value: null}]);
+	},
+	
+	'Should parse pseudos with empy value': function() {
+		value_of(Sly.parse(':pseudo()')[0].pseudos).should_be([{name: 'pseudo', value: null}]);
+		value_of(Sly.parse(':pseudo("")')[0].pseudos).should_be([{name: 'pseudo', value: null}]);
+		value_of(Sly.parse(":pseudo('')")[0].pseudos).should_be([{name: 'pseudo', value: null}]);
 	},
 	
 	'Should parse pseudos with values': function() {
-		value_of(Sly.parse(':pseudo()')[0].pseudos).should_be([{name: 'pseudo', value: ''}]);
 		value_of(Sly.parse(':pseudo(value)')[0].pseudos).should_be([{name: 'pseudo', value: 'value'}]);
 		value_of(Sly.parse(':pseudo("value")')[0].pseudos).should_be([{name: 'pseudo', value: 'value'}]);
 		value_of(Sly.parse(":pseudo('value')")[0].pseudos).should_be([{name: 'pseudo', value: 'value'}]);

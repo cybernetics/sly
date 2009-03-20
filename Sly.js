@@ -24,7 +24,7 @@ var Sly = {
 	 */
 
 	feature: {
-		querySelector: false && !!(document.querySelectorAll),
+		querySelector: !!(document.querySelectorAll),
 		elementsByClass: !!(document.getElementsByClassName)
 	},
 
@@ -62,7 +62,7 @@ var Sly = {
 
 (function() {
 
-var parser = (/[\w\u00c0-\uFFFF-][\w\u00c0-\uFFFF-]*|[#.][\w\u00c0-\uFFFF-]+|[ \t\r\n\f](?=[\w\u00c0-\uFFFF*#.[:-])|([,+>~])[ \t\r\n\f]*|\[([\w\u00c0-\uFFFF-]+)(?:([!*^$~|]?=)(?:"([^"]*)"|'([^']*)'|([^\]]*)))?]|:([-\w\u00c0-\uFFFF]+)(?:\((?:"([^"]*)"|'([^']*)'|([^)]*))\))?|\*/g);
+var parser = (/[\w\u00c0-\uFFFF-][\w\u00c0-\uFFFF-]*|[#.][\w\u00c0-\uFFFF-]+|[ \t\r\n\f](?=[\w\u00c0-\uFFFF*#.[:-])|([,+>~])[ \t\r\n\f]*|\[([\w\u00c0-\uFFFF-]+)(?:([!*^$~|\/]?=)(?:"([^"]*)"|'([^']*)'|([^\]]*)))?]|:([-\w\u00c0-\uFFFF]+)(?:\((?:"([^"]*)"|'([^']*)'|([^)]*))\))?|\*/g);
 
 /**
 	The regexp is a group of every possible selector part including combinators.
@@ -135,14 +135,14 @@ Sly.parse = function(sequence, compute) {
 			case '[':
 				current.attributes.push({
 					name: match[2],
-					operator: match[3],
-					value: match[4] || match[5] || match[6]
+					operator: match[3] || null,
+					value: match[4] || match[5] || match[6] || null
 				});
 				break;
 			case ':':
 				current.pseudos.push({
 					name: match[7],
-					value: match[8] || match[9] || match[10]
+					value: match[8] || match[9] || match[10] || null
 				});
 				break;
 			case ',':
@@ -200,26 +200,37 @@ function prepareClass(name) {
 	return (new RegExp('(?:^|[ \\t\\r\\n\\f])' + name + '(?:$|[ \\t\\r\\n\\f])'));
 };
 
+
+
+
 function matchClass(item, expr) {
 	return item.className && expr.test(item.className);
 };
 
-function matchAttribute(item, attr) {
-	var read = Sly.getAttribute(item, attr.name);
-	var operator = attr.operator;
-	if (!read) return (operator == '!=');
-	if (operator == null) return true;
-	var value = attr.value;
-	switch (operator){
-		case '=': return (read == value);
-		case '*=': return (read.indexOf(value) != -1);
-		case '^=': return (read.substr(0, value.length) == value);
-		case '$=': return (read.substr(read.length - value.length) == value);
-		case '!=': return (read != value);
-		case '~=': return ((' ' + read + ' ').indexOf(' ' + value + ' ') > -1);
-		case '|=': return (('|' + read + '|').indexOf('|' + value + '|') > -1);
+var escaper = /([-.*+?^${}()|[\]\/\\])/g;
+
+function prepareAttribute(attr) {
+	if (!attr.operator || !attr.value) return attr;
+	var expr = attr.value.replace(escaper, '\\$&');
+	switch (attr.operator) {
+		case '=': return attr;
+		case '!=': expr = '^(?!' + expr + ')$'; break;
+		case '^=': expr = '^' + expr; break;
+		case '$=': expr = expr + '$'; break;
+		case '~=': expr = '(?:^|[ \\t\\r\\n\\f])' + expr + '(?:$|[ \\t\\r\\n\\f])'; break;
+		case '|=': expr = '(?:^|\\|)' + expr + '(?:$|\\|)'; break;
+		case '\=': expr = attr.value;
 	}
-	return true;
+	attr.pattern = new RegExp(expr);
+	return attr;
+};
+
+function matchAttribute(item, attr) {
+	var read = Sly.getAttribute(item, attr.name), operator = attr.operator;
+	if (!operator) return read;
+	if (operator == '=') return (read === attr.value);
+	if (!read && (!attr.value || operator == '!=')) return false;
+	return attr.pattern.test(read);
 };
 
 // chains two given functions
@@ -248,13 +259,13 @@ Sly.compute = function(selector) {
 	if (id) {
 		matchSearch = chain(null, matchId, id);
 
-		search = function(item) {
-			if (item.getElementById) {
-				var el = item.getElementById(id);
+		search = function(context) {
+			if (context.getElementById) {
+				var el = context.getElementById(id);
 				return (el && (!tag || el.nodeName == nodeName)) ? [el] : [];
 			}
 
-			var query = item.getElementsByTagName(tag || '*');
+			var query = context.getElementsByTagName(tag || '*');
 			for (var i = 0, item; (item = query[i]); i++) {
 				if (item.id == id) return [item];
 			}
@@ -311,12 +322,12 @@ Sly.compute = function(selector) {
 			}, {});
 		} else {
 			var parser = Sly.pseudo[item.name];
-			match = (parser) ? chain(match, parser, item.value) : chain(match, matchAttribute, item)
+			match = (parser) ? chain(match, parser, item.value) : chain(match, matchAttribute, prepareAttribute(item))
 		}
 	}
 
 	for (i = 0; (item = selector.attributes[i]); i++) {
-		match = chain(match, matchAttribute, item);
+		match = chain(match, matchAttribute, prepareAttribute(item));
 	}
 
 	if ((selector.simple = !(match))) {
@@ -371,9 +382,9 @@ Sly.compute = function(selector) {
 var next = 1;
 
 var getUid = Sly.getUid = (window.ActiveXObject) ? function(item){
-	return uid = (item.$slyUid || (item.$slyUid = {id: next++})).id;
+	return (item.$slyUid || (item.$slyUid = {id: next++})).id;
 } : function(item){
-	return uid = item.$slyUid || (item.$slyUid = next++);
+	return item.$slyUid || (item.$slyUid = next++);
 };
 
 // not D.R.Y. but fast
@@ -394,17 +405,18 @@ Sly.search = function(sequence, context) {
 
 	var results;
 
-	if (Sly.feature.querySelector) {
-		if (!context.ownerDocument) {
-			var oldId = context.id;
+	if (Sly.feature.querySelector && context.nodeType == 9) {
+		/* @todo refactor
+		if (context.nodeType != 9) {
+			var reset = context.id;
 			context.id = 'uid-' + Sly.getUid(context);
-			var custom = '#' + context.id + ' ' + sequence;
+			var custom =  sequence.replace(/^|,/g, '$&' + '#' + context.id + ' ');
 		}
+		if (custom) context.id = reset;*/
 		try {
-			results = Sly.toArray.call(context.querySelectorAll(custom || sequence));
+			results = context.querySelectorAll(sequence);
 		} catch(e) {}
-		if (custom) context.id = oldId;
-		if (results) return results;
+		if (results) return Sly.toArray(results);
 	}
 
 	var elements, merged = {}, state = {}, done = false;
