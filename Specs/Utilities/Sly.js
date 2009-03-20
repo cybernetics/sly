@@ -80,11 +80,11 @@ describe('Sly.parse', {
 	},
 	
 	'Should parse special characters': function() {
-		value_of(Sly.parse('sñörebröd')[0].tag).should_be('sñörebröd');
-		value_of(Sly.parse('.sñörebröd')[0].classes[0]).should_be('sñörebröd');
-		value_of(Sly.parse('#sñörebröd')[0].id).should_be('sñörebröd');
-		value_of(Sly.parse('[sñörebröd]')[0].attributes[0].name).should_be('sñörebröd');
-		value_of(Sly.parse(':sñörebröd')[0].pseudos[0].name).should_be('sñörebröd');
+		value_of(Sly.parse('sÃ±Ã¶rebrÃ¶d')[0].tag).should_be('sÃ±Ã¶rebrÃ¶d');
+		value_of(Sly.parse('.sÃ±Ã¶rebrÃ¶d')[0].classes[0]).should_be('sÃ±Ã¶rebrÃ¶d');
+		value_of(Sly.parse('#sÃ±Ã¶rebrÃ¶d')[0].id).should_be('sÃ±Ã¶rebrÃ¶d');
+		value_of(Sly.parse('[sÃ±Ã¶rebrÃ¶d]')[0].attributes[0].name).should_be('sÃ±Ã¶rebrÃ¶d');
+		value_of(Sly.parse(':sÃ±Ã¶rebrÃ¶d')[0].pseudos[0].name).should_be('sÃ±Ã¶rebrÃ¶d');
 	},
 	
 	'Should not parse * to tag': function() {
