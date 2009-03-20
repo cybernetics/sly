@@ -62,7 +62,7 @@ var Sly = {
 
 (function() {
 
-var parser = (/[\w\u00c0-\uFFFF-][\w\u00c0-\uFFFF-]*|[#.][\w\u00c0-\uFFFF-]+|[ \t\r\n\f](?=[[\w\u00c0-\uFFFF*#.-])|([,+>~])[ \t\r\n\f]*|\[([\w\u00c0-\uFFFF-]+)(?:([!*^$~|]?=)(?:"([^"]*)"|'([^']*)'|([^\]]*)))?]|:([-\w\u00c0-\uFFFF]+)(?:\((?:"([^"]*)"|'([^']*)'|([^)]*))\))?/g);
+var parser = (/[\w\u00c0-\uFFFF-][\w\u00c0-\uFFFF-]*|[#.][\w\u00c0-\uFFFF-]+|[ \t\r\n\f](?=[\w\u00c0-\uFFFF*#.[:-])|([,+>~])[ \t\r\n\f]*|\[([\w\u00c0-\uFFFF-]+)(?:([!*^$~|]?=)(?:"([^"]*)"|'([^']*)'|([^\]]*)))?]|:([-\w\u00c0-\uFFFF]+)(?:\((?:"([^"]*)"|'([^']*)'|([^)]*))\))?|\*/g);
 
 /**
 	The regexp is a group of every possible selector part including combinators.
@@ -95,7 +95,8 @@ var empty = function($0) {
 	return $0;
 };
 
-var Selector = function(combinator) {
+// I prefer it outside, not sure if this is faster
+var create = function(combinator) {
 	return {
 		ident: [],
 		classes: [],
@@ -111,14 +112,12 @@ Sly.parse = function(sequence, compute) {
 	var cache = compute.$cache || (compute.$cache = {});
 	if (cache[sequence]) return cache[sequence];
 
-	var parsed = [], current = new Selector();
+	var parsed = [], current = create();
 	var first = current.first = true;
 
 	var refresh = function(combinator) {
-		if (current) {
-			parsed.push(compute(current));
-		}
-		current = new Selector(combinator);
+		parsed.push(compute(current));
+		current = create(combinator);
 	};
 
 	var match, $0, step;
@@ -143,7 +142,7 @@ Sly.parse = function(sequence, compute) {
 			case ':':
 				current.pseudos.push({
 					name: match[7],
-					argument: match[8] || match[9] || match[10]
+					value: match[8] || match[9] || match[10]
 				});
 				break;
 			case ',':
@@ -156,7 +155,7 @@ Sly.parse = function(sequence, compute) {
 				else refresh(combinator);
 				break;
 			default:
-				current.tag = $0;
+				if ($0 != '*') current.tag = $0;
 		}
 		current.ident.push($0);
 	}
@@ -306,13 +305,13 @@ Sly.compute = function(selector) {
 
 	for (i = 0; (item = selector.pseudos[i]); i++) {
 		if (item.name == 'not') { // optimized :not(), so it is fast and useful
-			var not = Sly.parse(item.argument, Sly.compute)[0].match; // TODO: validate
+			var not = Sly.parse(item.value, Sly.compute)[0].match; // TODO: validate
 			match = chain(match, function(item, state) {
 				return !not(item, state);
 			}, {});
 		} else {
 			var parser = Sly.pseudo[item.name];
-			match = (parser) ? chain(match, parser, item.argument) : chain(match, matchAttribute, item)
+			match = (parser) ? chain(match, parser, item.value) : chain(match, matchAttribute, item)
 		}
 	}
 

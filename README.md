@@ -6,9 +6,9 @@ and match DOM elements. A *framework independent* drop-in solution.
 ## Features
 
  * Fast and intelligent query algorithm for *best performance*
- * *Optimizations* for frequently used selectors
+ * *Optimisations* for frequently used selectors
  * No dependencies on other libraries
- * Only **4kb** (minified and gzipped)
+ * Only **2.5 kb** ([shrinked](http://dean.edwards.name/packer/) and [gzipped](http://en.wikipedia.org/wiki/Gzip), *5kb* [Base62 encoded](http://dean.edwards.name/packer/))
  * *Extensible* pseudo selectors and combinators
  * JS libraries can override internal methods like getAttribute
  * Generates a *reusable* JS representation from selectors
@@ -18,7 +18,7 @@ and match DOM elements. A *framework independent* drop-in solution.
 ## Credits
 
  * Combinator and pseudo selector collection is based on MooTools.
- * Thanks to [Steven Levithan](http://blog.stevenlevithan.com/), the master of regular expressions, for all the optimization tips.
+ * Thanks to [Steven Levithan](http://blog.stevenlevithan.com/), the master of regular expressions, for all the optimisation tips.
 
 ## The Tale About The "Why" 
 
@@ -27,8 +27,8 @@ Later on, the branch was forgotten, since Valerio did a great job to optimize se
 When discussions about fast and accurate selector engines came up again in the last months, I recovered and updated
 my old obsession to check it against the new kids on the block.
 
-It was and still is just an *exercise*, relaxation for an *optimization addict* like me. I hope it inspires other developers and
-libraries, using the whole helper or only pick some snippets.
+It was and still is just an *exercise*, relaxation for an *optimisation addict* like me. I hope it inspires other developers and
+libraries, incorporating the whole source or only pick some snippets.
 
 ## How Does It Work
 
