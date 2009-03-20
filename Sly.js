@@ -226,10 +226,13 @@ function prepareAttribute(attr) {
 };
 
 function matchAttribute(item, attr) {
-	var read = Sly.getAttribute(item, attr.name), operator = attr.operator;
-	if (!operator) return read;
-	if (operator == '=') return (read === attr.value);
-	if (!read && (!attr.value || operator == '!=')) return false;
+	var read = Sly.getAttribute(item, attr.name);
+	switch (attr.operator) {
+		case null: return read;
+		case '=': return (read == attr.value);
+		case '!=': return (read != attr.value);
+	}
+	if (!read && !attr.value) return false;
 	return attr.pattern.test(read);
 };
 
