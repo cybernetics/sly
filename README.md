@@ -8,12 +8,12 @@ and match DOM elements. A *framework independent* drop-in solution.
  * Fast and intelligent query algorithm for *best performance*
  * *Optimisations* for frequently used selectors
  * No dependencies on other libraries
- * Only **2.5 kb** ([shrinked](http://dean.edwards.name/packer/) and [gzipped](http://en.wikipedia.org/wiki/Gzip), *5kb* [Base62 encoded](http://dean.edwards.name/packer/))
- * *Extensible* pseudo selectors and combinators
+ * Less than **3 kb** ([shrinked](http://dean.edwards.name/packer/) and [gzipped](http://en.wikipedia.org/wiki/Gzip) or *5kb* [Base62 encoded](http://dean.edwards.name/packer/))
+ * *Extensible* pseudo selectors, attribute operators and combinators
  * JS libraries can override internal methods like getAttribute
- * Generates a *reusable* JS representation from selectors
- * Selector representation is cached
  * *Standalone* CSS3 parser
+   * Generates a *reusable* JS representation from selectors
+   * Selector representation is cached
 
 ## Credits
 
@@ -32,4 +32,69 @@ libraries, incorporating the whole source or only pick some snippets.
 
 ## How Does It Work
 
-Enjoy reading the code, more documentation will come.
+Enjoy reading the code, this is a work in progress:
+
+### Sly.parse
+
+	var list = Sly.parse(sequence (*string*)[, compute *function*])
+
+Splits a sequence of CSS selectors into their JS representation, an ´Array´ of ´Objects´.
+
+#### Flow
+
+	var example = 'ul#my-list > li.selected a:nth-child("odd"), a[href^=#]';
+	console.log(Sly.parse(example));
+	
+... returns an ´Array´ with 3 ´Objects´, one for every selector in the
+group. *For better readability, properties with empty Arrays (e.g. classes) false or null are left out*:
+
+	[
+		{
+			tag: 'ul',
+			id: 'my-list',
+			first: true
+		},
+		{
+			tag: 'li',
+			classes: ['odd'],
+			combinator: '>'
+		},
+		{
+			tag: 'a',
+			pseudos: [{
+				name: 'nth-child',
+				value: 'odd'
+			}],
+			combinator: ' ',
+			last: true
+		},
+		{
+			tag: 'a',
+			attributes: [{
+				name: 'href',
+				operator: '=',
+				value: '#'
+			}],
+			first: true,
+			last: true
+		}
+	]
+
+#### Specifications
+
+ * The parser does not validate the sequence
+ * The universal selector ´*´ is not saved to the tag property
+ * Values for pseudo or attribute values *can* be wrapped in ´""´ or ´''´, only required for complex values or better readability.
+ * The second parameter ´compute´ is called on every ´Object´ (see ´Sly.compute()´).
+
+### Sly.search
+
+	var nodes = Sly.search(sequence (*string*)[, context *node*]);
+
+### Sly.find
+
+	var node = Sly.find(sequence (*string*)[, context *node*]);
+
+### Sly.match
+
+	var bool = Sly.match(node (*node*), squence *string*);
