@@ -454,8 +454,8 @@ Sly.search = function(sequence, context) {
 
 		try {
 			results = context.querySelectorAll(sequence);
+			return Sly.toArray(results);
 		} catch(e) {}
-		if (results) return Sly.toArray(results);
 	}
 
 	// @todo Error handling, parse is very loose

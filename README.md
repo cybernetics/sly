@@ -15,13 +15,6 @@ and match DOM elements. A *framework independent* drop-in solution.
  * Representations and their computed methods are cached
  * Code follows the MooTools philosophy, respecting strict standards, throwing no warnings and using meaningful variable names
 
-## Credits
-
-The parse and compute algorithm is not based on other frameworks, but:
-
- * Collection of combinators and pseudo-classes is based on MooTools and the additional custom pseudo-classes on jQuery.
- * Thanks to [Steven Levithan](http://blog.stevenlevithan.com/), the master of regular expressions, for all the optimisation tips.
-
 ## The Tale About The "Why" 
 
 I started with the first version of Sly as [MooTools](http://mootools.net) [branch](http://svn.mootools.net/branches/NewSelectorParser/) in February 2008.
@@ -32,9 +25,16 @@ my old obsession to check it against the new kids on the block.
 It was and still is just an *exercise*, relaxation for an *optimisation addict* like me. I hope it inspires other developers and
 libraries, incorporating the whole source or only pick some snippets.
 
+## Credits
+
+It was once branched from [MooTools](http://mootools.net) (somewhere between 1.11 and 1.2) so it follows its architecture and uses overlapping helpers.
+
+ * Thanks to [Steven Levithan](http://blog.stevenlevithan.com/), the master of regular expressions, for all the optimisation tips.
+ * Additional custom pseudo-classes on jQuery.
+
 ## How Does It Work
 
-Enjoy reading the code, this is a work in progress:
+Enjoy reading the code, this the following is a work in progress:
 
 ### Sly.parse
 
