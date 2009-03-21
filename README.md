@@ -10,7 +10,7 @@ and match DOM elements. A *framework independent* drop-in solution.
  * No dependencies on other libraries
  * Less than **3 kb** ([shrinked](http://dean.edwards.name/packer/) and [gzipped](http://en.wikipedia.org/wiki/Gzip) or *5kb* [Base62 encoded](http://dean.edwards.name/packer/))
  * *Extensible* pseudo selectors, attribute operators and combinators
- * JS libraries can override internal methods, e.g. ´getAttribute´
+ * JS libraries can override internal methods, e.g. `getAttribute`
  * *Standalone* CSS3 parser generates a *reusable* JS representation from selectors
  * Representations and their computed methods are cached
  * Code follows the MooTools philosophy, respecting strict standards, throwing no warnings and using meaningful variable names
@@ -40,14 +40,14 @@ Enjoy reading the code, this is a work in progress:
 
 	var list = Sly.parse(sequence (*string*)[, compute *function*])
 
-Splits a sequence of CSS selectors into their JS representation, an ´Array´ of ´Objects´.
+Splits a sequence of CSS selectors into their JS representation, an `Array` of `Objects`.
 
 #### Flow
 
 	var example = 'ul#my-list > li.selected a:nth-child("odd"), a[href^=#]';
 	console.log(Sly.parse(example));
 	
-... returns an ´Array´ with 3 ´Objects´, one for every selector in the
+... returns an `Array` with 3 `Objects`, one for every selector in the
 group. *For better readability, properties with empty Arrays (e.g. classes) false or null are left out*:
 
 	[
@@ -85,9 +85,9 @@ group. *For better readability, properties with empty Arrays (e.g. classes) fals
 #### Specifications
 
  * The parser does not validate the sequence
- * The universal selector ´*´ is not saved to the tag property
- * Values for pseudo or attribute values *can* be wrapped in ´""´ or ´''´, only required for complex values or better readability.
- * The second parameter ´compute´ is called on every ´Object´ (see ´Sly.compute()´).
+ * The universal selector `*` is not saved to the tag property
+ * Values for pseudo or attribute values *can* be wrapped in `""` or `''`, only required for complex values or better readability.
+ * The second parameter `compute` is called on every `Object` (see `Sly.compute()`).
 
 ### Sly.search
 
