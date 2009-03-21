@@ -69,37 +69,11 @@
 				var start = new Date();
 				var i = 0;
 
+<?php	for ($i = 0; $i < 10; $i++): ?>
 				times[i]={ start:new Date() };
 				var elements = <?php echo $_GET['function']; ?>(selector, context);
-				times[i].end = new Date();
-
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
-				i++; times[i]={ start:new Date() }; <?php echo $_GET['function']; ?>(selector, context);times[i].end = new Date();
+				times[i++].end = new Date();
+<?php	endfor; ?>
 
 				var end = new Date();
 				var data = { time:0, found:get_length(elements) };

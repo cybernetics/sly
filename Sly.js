@@ -45,9 +45,7 @@ var Sly = {
 
 	implement: function(key, properties) {
 		for (var prop in properties) this[key][prop] = properties[prop];
-	},
-
-	verbose: true
+	}
 
 };
 
@@ -221,10 +219,8 @@ Sly.parse = function(sequence, compute) {
 
 (function() {
 
-var lambda = function(value) {
-	return function() {
-		return value;
-	};
+var empty = function(value) {
+	return true;
 };
 
 function matchId(item, id) {
@@ -279,23 +275,22 @@ function chain(prepend, append, aux, unshift) {
 
 
 Sly.compute = function(selector) {
-	var match, search, matchSearch;
-	var i, item;
 
-	var tag = selector.tag, id = selector.id;
-	var classes = selector.classes;
+	var i, item, match, search, matchSearch, tagged,
+		tag = selector.tag,
+		id = selector.id,
+		classes = selector.classes;
 
 	var nodeName = (tag) ? tag.toUpperCase() : null;
-	var tagged = false;
 
 	if (id) {
-		matchSearch = chain(null, matchId, id);
 		tagged = true;
+		matchSearch = chain(matchSearch, matchId, id);
 
 		search = function(context) {
 			if (context.getElementById) {
 				var el = context.getElementById(id);
-				return (el && (!tag || el.nodeName == nodeName)) ? [el] : [];
+				return (el && (!nodeName || el.nodeName == nodeName)) ? [el] : [];
 			}
 
 			var query = context.getElementsByTagName(tag || '*');
@@ -305,6 +300,7 @@ Sly.compute = function(selector) {
 			return [];
 		};
 	}
+
 	if (classes.length > 0) {
 		if (!search && Sly.feature.elementsByClass) {
 
@@ -319,10 +315,10 @@ Sly.compute = function(selector) {
 
 		} else if (!search && classes.length == 1) { // optimized for typical .one-class-only
 
+			tagged = true;
 			var expr = prepareClass(classes[0]);
 			matchSearch = chain(matchSearch, matchClass, expr);
 
-			tagged = true;
 
 			search = function(context) {
 				var query = context.getElementsByTagName(tag || '*');
@@ -372,13 +368,16 @@ Sly.compute = function(selector) {
 	}
 
 	if ((selector.simple = !(match))) {
-		selector.matchAux = lambda(true);
+		selector.matchAux = empty;
 	} else {
 		selector.matchAux = match;
 		matchSearch = chain(matchSearch, match);
 	}
 
-	selector.match = matchSearch || lambda(true);
+	selector.match = matchSearch || empty;
+
+	selector.combine = Sly.combinators[selector.combinator || ' '];
+
 	selector.search = search;
 
 	return selector;
@@ -441,9 +440,10 @@ Sly.checkUid = function(item, uniques){
 Sly.search = function(sequence, context) {
 	context = context || document;
 
-	var results;
+	var results = [];
 
 	if (Sly.feature.querySelector && context.nodeType == 9) {
+
 		/* @todo refactor
 		if (context.nodeType != 9) {
 			var reset = context.id;
@@ -451,54 +451,62 @@ Sly.search = function(sequence, context) {
 			var custom =  sequence.replace(/^|,/g, '$&' + '#' + context.id + ' ');
 		}
 		if (custom) context.id = reset;*/
+
 		try {
 			results = context.querySelectorAll(sequence);
 		} catch(e) {}
 		if (results) return Sly.toArray(results);
 	}
 
-	var elements, merged = {}, state = {}, done = false;
-
-	// faster unique checker
-	/*
-	var uniques = {};
-	var checkLoop = function(item){
-		var uid = getUid(item);
-		return (uniques[uid]) ? null : (uniques[uid] = true);
-	};
-	*/
-
-	var merge = function() {
-		if (!results) {
-			return Sly.toArray(elements);
-		} else if (elements.length) {
-			for (var i = 0, item; (item = elements[i]); i++) {
-				if (Sly.checkUid(item, merged)) results.push(item);
-			}
-		}
-		return results;
-	};
-
+	// @todo Error handling, parse is very loose
 	var parsed = Sly.parse(sequence, Sly.compute);
 
+	var elements,
+		all = {}, // uniques for all results
+		current = {}, // uniques for one iteration process
+		state = {}, // matchers temporary state
+		combined; // elements from one iteration process
+
+	// unifiers
+	var getUid = Sly.getUid;
+	var locateCurrent = function(item){
+		var uid = getUid(item);
+		return (current[uid]) ? null : (current[uid] = true);
+	};
+
+	var locateFast = function() {
+		return true;
+	};
+
 	for (var i = 0, selector; (selector = parsed[i]); i++) {
-		var combinator = selector.combinator;
 
-		if (selector.first) { // must be one after a comma
-			if (i > 0) results = merge();
-			if (combinator) elements = [context]; // allows combinators before selectors
+		var locate = locateCurrent;
+
+		if (selector.first) {
+			if (!results.length) locate = locateFast;
+			if (selector.combinator) elements = [context]; // allows combinators before selectors
 		}
 
-		if (!combinator) { // without prepended combinator
-			elements = Sly.combinators[' ']([], context, selector, state);
-		} else { // with prepended combinators
-			var found = [], uniques = {}, concat = Sly.combinators[selector.combinator || ' '];
-			for (var k = 0, l = elements.length; k < l; k++) found = concat(found, elements[k], selector, state, uniques);
-			elements = found;
+		if (selector.last && results.length) {
+			current = all;
+			combined = results;
+		} else { // default stack
+			current = {};
+			combined = [];
 		}
+
+		if (!selector.combinator) {
+			// without prepended combinator
+			combined = selector.combine(combined, context, state, locate, !(combined.length));
+		} else {
+			// with prepended combinators
+			for (var k = 0, l = elements.length; k < l; k++) combined = selector.combine(combined, elements[k], state, locate);
+		}
+		if (selector.last) results = combined;
+		else elements = combined;
 	}
 
-	return merge();
+	return results;
 };
 
 
@@ -552,44 +560,42 @@ Sly.operators = {
 
 Sly.combinators = {
 
-	' ': function(found, context, selector, state, uniques) {
-		var items = selector.search(context);
-		if (!uniques && selector.simple) return items;
-		for (var i = 0, item, check = Sly.checkUid; (item = items[i]); i++) {
-			if ((!uniques || check(item, uniques)) && selector.matchAux(item, state)) found.push(item);
+	' ': function(combined, context, state, locate, fast) {
+		var items = this.search(context);
+		if (fast && this.simple) return Sly.toArray(items);
+		for (var i = 0, item; (item = items[i]); i++) {
+			if (locate(item) && this.matchAux(item, state)) combined.push(item);
 		}
-		return found;
+		return combined;
 	},
 
-	'>': function(found, context, selector, state, uniques) {
-		var items = selector.search(context);
-		for (var i = 0, item, check = Sly.checkUid; (item = items[i]); i++) {
-			if (item.parentNode == context && check(item, uniques) && selector.matchAux(item, state)) found.push(item);
+	'>': function(combined, context, state, locate) {
+		var items = this.search(context);
+		for (var i = 0, item; (item = items[i]); i++) {
+			if (item.parentNode == context && locate(item) && this.matchAux(item, state)) combined.push(item);
 		}
-		return found;
+		return combined;
 	},
 
-	'+': function(found, context, selector, state, uniques) {
-		var check = Sly.checkUid;
+	'+': function(combined, context, state, locate) {
 		while ((context = context.nextSibling)) {
 			if (context.nodeType == 1) {
-				if (check(context, uniques) && selector.match(context, state)) found.push(context);
+				if (locate(context) && this.match(context, state)) combined.push(context);
 				break;
 			}
 
 		}
-		return found;
+		return combined;
 	},
 
-	'~': function(found, self, selector, state, uniques) {
-		var check = Sly.checkUid;
-		while ((self = self.nextSibling)) {
-			if (self.nodeType == 1) {
-				if (!check(self, uniques)) break;
-				if (selector.match(self, state)) found.push(self);
+	'~': function(combined, context, state, locate) {
+		while ((context = context.nextSibling)) {
+			if (context.nodeType == 1) {
+				if (!locate(context)) break;
+				if (this.match(context, state)) combined.push(context);
 			}
 		}
-		return found;
+		return combined;
 	}
 
 };

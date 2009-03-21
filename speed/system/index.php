@@ -1,6 +1,25 @@
 <?php
 
 	$frameworks = parse_ini_file('config.ini', true);
+	
+	/*
+	if (isset($_POST['run_data'])) {
+		
+		if (!isset($_COOKIE['run_id'])) {
+			header('Location: index.php');
+			exit;
+		}
+		
+		$_COOKIE['run_id'] = null;
+		$data = explode(';', $_POST['run_data']);
+		
+		// saving things
+		
+		header('Location: index.php');
+		exit;
+	}
+	*/
+	
 	$selectors = file_get_contents('selectors.list.css');
 
 ?>

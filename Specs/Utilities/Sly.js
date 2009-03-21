@@ -230,12 +230,21 @@ tree.innerHTML = [
 
 describe('Sly.search Fragment', {
 
-	'Should return elements from a simple selector': function() {
+	'Should return elements': function() {
 		value_of(Sly.search('*', tree)).should_have(12, 'items');
 		value_of(Sly.search('#list', tree)).should_have(1, 'items');
 		value_of(Sly.search('[href]', tree)).should_have(2, 'items');
 		value_of(Sly.search('[href][title]', tree)).should_have(1, 'items');
 		value_of(Sly.search('#list > dt', tree)).should_have(2, 'items');
+	},
+
+	'Should return an empty Array': function() {
+		value_of(Sly.search('dl span', tree)).should_have(0, 'items');
+		value_of(Sly.search('dl > span', tree)).should_have(0, 'items');
+		value_of(Sly.search('[href] dl', tree)).should_have(0, 'items');
+		value_of(Sly.search('span + a', tree)).should_have(0, 'items');
+		value_of(Sly.search('span #list', tree)).should_have(0, 'items');
+		value_of(Sly.search('a span .classX', tree)).should_have(0, 'items');
 	},
 
 	'Should return elements with prepended combinator': function() {
@@ -249,7 +258,14 @@ describe('Sly.search Fragment', {
 });
 
 
-describe('Sly Custom', {
+describe('Sly.find', {
+
+	'Should return one element': function() {
+	}
+
+});
+
+describe('Custom - Sly.parse', {
 
 	'Should parse combinator <': function() {
 		value_of(Sly.parse('a < b')[1].combinator).should_be('<');
@@ -273,6 +289,21 @@ describe('Sly Custom', {
 		value_of(Sly.parse('a -- b')[1].combinator).should_be('--');
 		value_of(Sly.parse('-- b')[0].combinator).should_be('--');
 		value_of(Sly.parse('b --')[1].combinator).should_be('--');
+	},
+
+	'Should parse combinator ±': function() {
+		value_of(Sly.parse('a ± b')[1].combinator).should_be('±');
+		value_of(Sly.parse('± b')[0].combinator).should_be('±');
+		value_of(Sly.parse('b ±')[1].combinator).should_be('±');
+	},
+
+	'Should parse The-Combinator-Smilie': function() {
+		parsed = Sly.parse('<^±^>');
+		value_of(parsed[0].combinator).should_be('<');
+		value_of(parsed[1].combinator).should_be('^');
+		value_of(parsed[2].combinator).should_be('±');
+		value_of(parsed[3].combinator).should_be('^');
+		value_of(parsed[4].combinator).should_be('>');
 	}
 
 });

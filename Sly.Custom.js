@@ -16,36 +16,36 @@
 
 	// Custom combinators, from MooTools Slick.js
 
-	'<': function(found, self, selector, state, uniques){
-	  while ((self = self.parentNode) && self.nodeType !== 9) {
-	    if (Sly.checkUid(self, uniques) && selector.match(self, state)) found.push(self);
+	'<': function(combined, context, state, locate){
+	  while ((context = context.parentNode) && context.nodeType !== 9) {
+	    if (locate(context) && this.match(context, state)) combined.push(context);
 	  }
 	},
 
-	'^': function(found, self, selector, state, uniques){
-	  self = self.firstChild;
-	  if (self){
-	    if (node.nodeType === 1 && Sly.checkUid(self, uniques) && selector.match(self, state)) found.push(self);
-	    else this['+'](found, self, selector, state, uniques);
+	'^': function(combined, context, state, locate){
+	  context = context.firstChild;
+	  if (context){
+	    if (node.nodeType === 1 && locate(context) && this.match(context, state)) combined.push(context);
+	    else Sly.combinators['+'].call(this, combined, context, state);
 	  }
 	},
 
-	'++': function(found, self, selector, state, uniques){
+	'++': function(combined, context, state, locate){
 		while ((context = context.nextSibling)) {
-			if (context.nodeType === 1 && Sly.checkUid(context, uniques) && selector.match(context, state)) found.push(context);
+			if (context.nodeType === 1 && locate(context) && this.match(context, state)) combined.push(context);
 		}
-		return found;
+		return combined;
 	},
 
-	'--': function(found, self, selector, state, uniques){
+	'--': function(combined, context, state, locate){
 		while ((context = context.previousSibling)) {
-			if (context.nodeType === 1 && Sly.checkUid(context, uniques) && selector.match(context, state)) found.push(context);
+			if (context.nodeType === 1 && locate(context) && this.match(context, state)) combined.push(context);
 		}
-		return found;
+		return combined;
 	},
 
-	'±': function(found, self, selector, state, uniques){
-		return this['--'](this['++'](found, self, selector, state, uniques), self, selector, state, uniques);
+	'±': function(combined, context, state, locate){
+		return Sly.combinators['--'].call(Sly.combinators['++'].call(combined, context, state, uniques), context, state, uniques);
 	}
 
 });
