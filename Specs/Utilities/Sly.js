@@ -189,22 +189,22 @@ describe('Sly.match', {
 		element.className = 'classX';
 		element.id = 'idX';
 
-		value_of(Sly.match(element, '*')).should_be_true();
-		value_of(Sly.match(element, 'div')).should_be_true();
-		value_of(Sly.match(element, 'div.classX')).should_be_true();
-		value_of(Sly.match(element, '.classX')).should_be_true();
-		value_of(Sly.match(element, '#idX')).should_be_true();
-		value_of(Sly.match(element, '#idX.classX')).should_be_true();
+		value_of(Sly.match('*', element)).should_be_true();
+		value_of(Sly.match('div', element)).should_be_true();
+		value_of(Sly.match('div.classX', element)).should_be_true();
+		value_of(Sly.match('.classX', element)).should_be_true();
+		value_of(Sly.match('#idX', element)).should_be_true();
+		value_of(Sly.match('#idX.classX', element)).should_be_true();
 	},
 
 	'Should return false for an unmatched element': function() {
-		value_of(Sly.match(element, '#idY')).should_be_false();
-		value_of(Sly.match(element, 'a')).should_be_false();
-		value_of(Sly.match(element, '.classY')).should_be_false();
+		value_of(Sly.match('#idY', element)).should_be_false();
+		value_of(Sly.match('a', element)).should_be_false();
+		value_of(Sly.match('.classY', element)).should_be_false();
 	},
 
 	'Should return true for missing selector': function() {
-		value_of(Sly.match(element, null)).should_be_true();
+		value_of(Sly.match(null, element)).should_be_true();
 	},
 
 	'Should match by pseudo': function() {
@@ -214,9 +214,9 @@ describe('Sly.match', {
 	},
 
 	'Should ignore combinators': function() {
-		value_of(Sly.match(element, '> div')).should_be_true();
-		value_of(Sly.match(element, '~ div')).should_be_true();
-		value_of(Sly.match(element, ' div')).should_be_true();
+		value_of(Sly.match('> div', element)).should_be_true();
+		value_of(Sly.match('~ div', element)).should_be_true();
+		value_of(Sly.match(' div', element)).should_be_true();
 	}
 
 });
