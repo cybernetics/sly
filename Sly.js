@@ -4,8 +4,8 @@
  * Cutting-edge JavaScript helper for parsing CSS3 selectors to find
  * and match DOM nodes. A framework independent drop-in solution.
  *
- * Credits: Combinator and pseudo sets are based on MooTools <http://mootools.net.
- * Original code base was created for MooTools 1.2
+ * Credits: Origin was a branch from MooTools 1.2-pre, Feb 2008
+ * Combinator and pseudo sets are based on MooTools <http://mootools.net>.
  *
  * @version: preview
  *
@@ -18,10 +18,16 @@
 var Sly = (function() {
 
 var cache = {};
-var trim = /^\s+/;
 
+/**
+ * Sly::constructor
+ */
 var Sly = function(text) {
-	text = (typeof(text) == 'string') ? text.replace(trim, '') : '';
+
+	// if (text instanceof Array) text = text.join(','); // vote for it
+
+	text = (typeof(text) == 'string') ? text.replace(/^\s+/, '') : '';
+
 	return cache[text] || (cache[text] = new Sly.initialize(text));
 }
 
@@ -31,34 +37,52 @@ Sly.initialize = function(text) {
 
 Sly.initialize.prototype = Sly.prototype;
 
-Sly.prototype.search = function(context) {
+
+/**
+ * Sly.implement
+ */
+Sly.implement = function(key, properties, recompile) {
+	console.log(key);
+	for (var prop in properties) Sly[key][prop] = properties[prop];
+};
+
+
+/**
+ * Sly.features
+ */
+Sly.features = {
+	querySelector: !!(document.querySelectorAll),
+	elementsByClass: !!(document.getElementsByClassName)
+};
+
+
+var locateFast = function() {
+	return true;
+};
+
+/**
+ * Sly::search
+ */
+Sly.prototype.search = function(context, limit) {
 	context = context || document;
 
-	var results = [];
+	// if (limit) limit = (limit > 1) ? limit : 1; // VOTE for it
 
 	if (Sly.features.querySelector && context.nodeType == 9) {
-
-		/* @todo refactor
-		if (context.nodeType != 9) {
-			var reset = context.id;
-			context.id = 'uid-' + Sly.getUid(context);
-			var custom =  text.replace(/^|,/g, '$&' + '#' + context.id + ' ');
-		}
-		if (custom) context.id = reset;*/
-
 		try {
-			results = context.querySelectorAll(text);
-			return Sly.toArray(results);
+			return Sly.toArray(context.querySelectorAll(text));
 		} catch(e) {}
 	}
 
 	var parsed = this.parse();
 
-	var nodes,
-		all = {}, // unique ids for all results
-		current = {}, // unique ids for one iteration process
-		state = {}, // matchers temporary state
-		combined; // nodes from one iteration process
+	var results, // overall result
+		combined, // found nodes from one iteration process
+		nodes, // context nodes from one iteration process
+		current, // unique ids for one iteration process
+		all = {}, // unique ids for overall result
+		state = {}; // matchers temporary state
+		;
 
 	// unifiers
 	var getUid = Sly.getUid;
@@ -67,20 +91,16 @@ Sly.prototype.search = function(context) {
 		return (current[uid]) ? null : (current[uid] = true);
 	};
 
-	var locateFast = function() {
-		return true;
-	};
-
 	for (var i = 0, selector; (selector = parsed[i]); i++) {
 
 		var locate = locateCurrent;
 
 		if (selector.first) {
-			if (!results.length) locate = locateFast;
+			if (!results) locate = locateFast;
 			if (selector.combinator) nodes = [context]; // allows combinators before selectors
 		}
 
-		if (selector.last && results.length) {
+		if (selector.last && results) {
 			current = all;
 			combined = results;
 		} else { // default stack
@@ -95,24 +115,30 @@ Sly.prototype.search = function(context) {
 			// with prepended combinators
 			for (var k = 0, l = nodes.length; k < l; k++) combined = selector.combine(combined, nodes[k], state, locate);
 		}
-		if (selector.last) results = combined;
-		else nodes = combined;
+		if (selector.last) {
+			results = combined;
+			// if (limit && results.length >= limit) break;
+		} else {
+			nodes = combined;
+		}
 	}
 
-	return results;
+	// if (limit) return (limit > 1) ? results.slice(0, limit) : results[0];
+
+	return results || [];
 };
 
 
 /**
- * Sly.find
+ * Sly::find
  */
 Sly.prototype.find = function(context) {
-	return this.search(context)[0];
+	return this.search(context, 1);
 };
 
 
 /**
- * Sly.match
+ * Sly::match
  */
 Sly.prototype.match = function(node) {
 	return !!(this.parse()[0].match(node, {}));
@@ -120,7 +146,7 @@ Sly.prototype.match = function(node) {
 
 
 /**
- * Sly.filter
+ * Sly::filter
  */
 Sly.prototype.filter = function(nodes) {
 	var results = [], match = this.parse()[0].match;
@@ -132,39 +158,23 @@ Sly.prototype.filter = function(nodes) {
 
 
 /**
- * Sly.parse(text, compute)
- *
- * Returns an array with one object for every selector:
- *
- * {
- *   tag: (String) Tagname (defaults to null for universal *)
- *   id: (String) Id
- *   classes: (Array) Classnames
- *   attributes: (Array) Attribute objects with "name", "operator" and "value"
- *   pseudos: (Array) Pseudo objects with "name" and "value"
- *   operator: (Char) The prepended operator (not comma)
- *   first: (Boolean) true if it is the first selector or the first after a comma
- *   ident: (Array) All parsed matches, can be used as cache identifier.
- * }
- *
- * The compute function is called as iterator when a selector is finished.
+ * Sly.recompile()
  */
-
 var pattern;
 
 Sly.recompile = function() {
 
 	// ,+>~
-	var combinators = [','];
-	for (var key in Sly.combinators) {
+	var combList = [','];
+	for (var key in combinators) {
 		if (key != ' ') {
-			combinators[(key.length > 1) ? 'unshift' : 'push'](escapeRegExp(key));
+			combList[(key.length > 1) ? 'unshift' : 'push'](Sly.escapeRegExp(key));
 		}
 	}
 
 	// !*^$~|\\/
-	var operators = ['!'];
-	for (var key in Sly.operators) operators.push(key);
+	var operList = ['!'];
+	for (var key in operators) operList.push(key);
 
 	/**
 	  The regexp is a group of every possible selector part including combinators.
@@ -187,9 +197,9 @@ Sly.recompile = function() {
 		// Whitespace (descendant combinator)
 		'[ \\t\\r\\n\\f](?=[\\w\\u00c0-\\uFFFF*#.[:])|' +
 		// Other combinators and the comma
-		'(' + combinators.join('|') + ')[ \\t\\r\\n\\f]*|' +
+		'(' + combList.join('|') + ')[ \\t\\r\\n\\f]*|' +
 		// An attribute, with the various and optional value formats ([name], [name=value], [name="value"], [name='value']
-		'\\[([\\w\\u00c0-\\uFFFF-]+)(?:([' + operators.join('') + ']?=)(?:"([^"]*)"|\'([^\']*)\'|([^\\]]*)))?]|' +
+		'\\[([\\w\\u00c0-\\uFFFF-]+)(?:([' + operList.join('') + ']?=)(?:"([^"]*)"|\'([^\']*)\'|([^\\]]*)))?]|' +
 		// A pseudo-class, with various formats
 		':([-\\w\\u00c0-\\uFFFF]+)(?:\\((?:"([^"]*)"|\'([^\']*)\'|([^)]*))\\))?|' +
 		// The universial selector, usually ignored
@@ -197,9 +207,24 @@ Sly.recompile = function() {
 	);
 };
 
-var plain = function($0) {
-	return $0;
-};
+
+/**
+ * Sly::parse
+ *
+ * Returns an array with one object for every selector:
+ *
+ * {
+ *   tag: (String) Tagname (defaults to null for universal *)
+ *   id: (String) Id
+ *   classes: (Array) Classnames
+ *   attributes: (Array) Attribute objects with "name", "operator" and "value"
+ *   pseudos: (Array) Pseudo objects with "name" and "value"
+ *   operator: (Char) The prepended operator (not comma)
+ *   first: (Boolean) true if it is the first selector or the first after a comma
+ *   last: (Boolean) true if it is the last selector or the last before a comma
+ *   ident: (Array) All parsed matches, can be used as cache identifier.
+ * }
+ */
 
 // I prefer it outside, not sure if this is faster
 var create = function(combinator) {
@@ -212,13 +237,18 @@ var create = function(combinator) {
 	};
 };
 
-Sly.prototype.parse = function() {
-	if (this.parsed) return this.parsed;
+var blank = function($0) {
+	return $0;
+};
+
+Sly.prototype.parse = function(plain) {
+	var save = (plain) ? 'plain' : 'parsed';
+	if (this[save]) return this[save];
 
 	var text = this.text;
-	var compute = this.compute;
+	var compute = (plain) ? blank : this.compute;
 
-	var parsed = [], current = create();
+	var parsed = [], current = create(null);
 	current.first = true;
 
 	var refresh = function(combinator) {
@@ -226,10 +256,10 @@ Sly.prototype.parse = function() {
 		current = create(combinator);
 	};
 
-	var match;
+	var match, $0;
 
 	while ((match = pattern.exec(text))) {
-		var $0 = match[0];
+		$0 = match[0];
 
 		switch ($0.charAt(0)) {
 			case '.':
@@ -273,22 +303,9 @@ Sly.prototype.parse = function() {
 	current.last = true;
 	parsed.push(compute(current));
 
-	return (this.parsed = parsed);
+	return (this[save] = parsed);
 };
 
-
-/**
- * Sly.compute(selector)
- *
- * Attaches the following methods to the selector object:
- *
- * {
- *   search: Uses the most convinient properties (id, tag and/or class) of the selector as search.
- *   matchAux: If search does not contain all selector properties, this method matches an element against the rest.
- *   match: Matches an element against all properties.
- *   simple: Set when matchAux is not needed.
- * }
- */
 
 // chains two given functions
 
@@ -328,9 +345,10 @@ var comperators = {
 
 	prepareAttribute: function(attr) {
 		if (!attr.operator || !attr.value) return attr;
-		var parser = Sly.operators[attr.operator];
-		if (parser) {
-			attr.pattern = new RegExp(parser(attr.value, attr.value.replace(escapeRegExp, '\\$&')));
+		var parser = operators[attr.operator];
+		if (parser) { // @todo: Allow functions, not only regex
+			attr.escaped = Sly.escapeRegExp(attr.value);
+			attr.pattern = new RegExp(parser(attr.value, attr.escaped, attr));
 		}
 		return attr;
 	},
@@ -342,12 +360,27 @@ var comperators = {
 			case '=': return (read == attr.value);
 			case '!=': return (read != attr.value);
 		}
-		if (!read && !attr.value) return false;
-		return attr.pattern.test(read); // @todo: Allow functions, not only regex
+
+		if (!read && attr.value) return false;
+		return attr.pattern.test(read);
 	}
 
 };
 
+
+/**
+ * Sly::compute
+ *
+ * Attaches the following methods to the selector object:
+ *
+ * {
+ *   search: Uses the most convinient properties (id, tag and/or class) of the selector as search.
+ *   matchAux: If search does not contain all selector properties, this method matches an element against the rest.
+ *   match: Matches an element against all properties.
+ *   simple: Set when matchAux is not needed.
+ *   combine: The callback for the combinator
+ * }
+ */
 Sly.prototype.compute = function(selector) {
 
 	var i, item, match, search, matchSearch, tagged,
@@ -388,7 +421,7 @@ Sly.prototype.compute = function(selector) {
 				return context.getElementsByClassName(joined);
 			};
 
-		} else if (!search && classes.length == 1) { // optimized for typical .one-class-only
+		} else if (!search && classes.length == 1) { // optimised for typical .one-class-only
 
 			tagged = true;
 
@@ -435,13 +468,13 @@ Sly.prototype.compute = function(selector) {
 
 	for (i = 0; (item = selector.pseudos[i]); i++) {
 
-		if (item.name == 'not') { // optimized :not(), so it is fast and useful
+		if (item.name == 'not') { // optimised :not(), so it is fast and useful
 			var not = Sly(item.value); // TODO: validate
 			match = chain(match, function(node, state) {
 				return !not.match(node);
 			}, {});
 		} else {
-			var parser = Sly.pseudos[item.name];
+			var parser = pseudos[item.name];
 			match = (parser) ? chain(match, parser, item.value) : chain(match, comperators.matchAttribute, comperators.prepareAttribute(item))
 		}
 
@@ -468,100 +501,10 @@ Sly.prototype.compute = function(selector) {
 };
 
 
-// public, overridable
-
-Sly.features = {
-	querySelector: !!(document.querySelectorAll),
-	elementsByClass: !!(document.getElementsByClassName)
-};
-
-Sly.getAttribute = function(node, name) {
-	if (name == 'class') return node.className;
-	return node.getAttribute(name, 2);
-};
-
-var toArray = function(nodes) {
-	return Array.prototype.slice.call(nodes);
-};
-
-try {
-	toArray(document.documentElement.childNodes);
-} catch (e) {
-	toArray = function(nodes) {
-		if (nodes instanceof Array) return nodes;
-		var i = nodes.length, results = new Array(i);
-		while (i--)
-			results[i] = nodes[i];
-		return results;
-	};
-}
-
-Sly.toArray = toArray;
-
-Sly.implement = function(key, properties) {
-	for (var prop in properties) this[key][prop] = properties[prop];
-};
-
-var nextUid = 1;
-
-Sly.getUid = (window.ActiveXObject) ? function(node){
-	return (node.$slyUid || (node.$slyUid = {id: nextUid++})).id;
-} : function(node){
-	return node.$slyUid || (node.$slyUid = nextUid++);
-};
-
-// private
-
-var escapeRegExp = function(text) {
-	return text.replace(/[-.*+?^${}()|[\]\/\\]/g, '\\$&');
-};
-
-// generic methods
-
-Sly.generise = function(name) {
-	Sly[name] = function(text) {
-		var cls = Sly(text);
-		return cls[name].apply(cls, Array.prototype.slice.call(arguments, 1));
-	}
-};
-
-var generics = ['parse', 'search', 'find', 'match', 'filter'];
-for (var i = 0; generics[i]; i++) Sly.generise(generics[i]);
-
-return Sly;
-
-})();
-
-
-Sly.operators = {
-
-	'*=': function(value, escaped) {
-		return escaped;
-	},
-
-	'^=': function(value, escaped) {
-		return '^' + escaped;
-	},
-
-	'$=': function(value, escaped) {
-		return value + '$';
-	},
-
-	'~=': function(value, escaped) {
-		return '(?:^|[ \\t\\r\\n\\f])' + escaped + '(?:$|[ \\t\\r\\n\\f])';
-	},
-
-	'|=': function(value, escaped) {
-		return '(?:^|\\|)' + escaped + '(?:$|\\|)';
-	}
-
-};
-
-
 /**
- * Sly.combinators - Basic set
+ * Combinators
  */
-Sly.combinators = {
+var combinators = Sly.combinators = {
 
 	' ': function(combined, context, state, locate, fast) {
 		var nodes = this.search(context);
@@ -605,47 +548,14 @@ Sly.combinators = {
 
 
 /**
- * Sly.parseNth()
+ * Pseudo-Classes
  */
-(function() {
-
-var cache = {};
-
-Sly.parseNth = function(value) {
-	if (cache[value]) return cache[value];
-	var parsed = value.match(/^([+-]?\d*)?([a-z]+)?([+-]?\d*)?$/);
-	if (!parsed) return false;
-	var inta = parseInt(parsed[1]);
-	var a = ($chk(inta)) ? inta : 1;
-	var special = parsed[2] || false;
-	var b = parseInt(parsed[3]) || 0;
-	b--;
-	while (b < 1) b += a;
-	while (b >= a) b -= a;
-	switch (special) {
-		case 'n': parsed = {a: a, b: b, special: 'n'}; break;
-		case 'odd': parsed = {a: 2, b: 0, special: 'n'}; break;
-		case 'even': parsed = {a: 2, b: 1, special: 'n'}; break;
-		case 'first': parsed = {a: 0, special: 'index'}; break;
-		case 'last': parsed = {special: 'last-child'}; break;
-		case 'only': parsed = {special: 'only-child'}; break;
-		default: parsed = {a: (a - 1), special: 'index'};
-	}
-	return (cache[value] = parsed);
-};
-
-})();
-
-
-/**
- * Sly.pseudos - Basic set
- */
-Sly.pseudos = {
+var pseudos = Sly.pseudos = {
 
 	// w3c pseudo classes
 
 	'first-child': function(node) {
-		return Sly.pseudos.index(node, 0);
+		return pseudos.index(node, 0);
 	},
 
 	'last-child': function(node) {
@@ -669,7 +579,7 @@ Sly.pseudos = {
 
 	'nth-child': function(node, value, state) {
 		var parsed = Sly.parseNth(value || 'n');
-		if (parsed.special != 'n') return Sly.pseudos[parsed.special](node, parsed.a, state);
+		if (parsed.special != 'n') return pseudos[parsed.special](node, parsed.a, state);
 		state.positions = state.positions || {};
 		var uid = Sly.getUid(node) ;
 		if (!state.positions[uid]) {
@@ -705,16 +615,130 @@ Sly.pseudos = {
 	},
 
 	'even': function(node, value, state) {
-		return Sly.pseudos['nth-child'](node, '2n', state);
+		return pseudos['nth-child'](node, '2n', state);
 	},
 
 	'odd': function(node, value, state) {
-		return Sly.pseudos['nth-child'](node, '2n+1', state);
+		return pseudos['nth-child'](node, '2n+1', state);
 	}
 
 };
 
+
+/**
+ * Attribute operators
+ */
+var operators = Sly.operators = {
+
+	'*=': function(value, escaped) {
+		return escaped;
+	},
+
+	'^=': function(value, escaped) {
+		return '^' + escaped;
+	},
+
+	'$=': function(value, escaped) {
+		return value + '$';
+	},
+
+	'~=': function(value, escaped) {
+		return '(?:^|[ \\t\\r\\n\\f])' + escaped + '(?:$|[ \\t\\r\\n\\f])';
+	},
+
+	'|=': function(value, escaped) {
+		return '(?:^|\\|)' + escaped + '(?:$|\\|)';
+	}
+
+};
+
+
+// public, overridable
+
+Sly.getAttribute = function(node, name) {
+	if (name == 'class') return node.className;
+	return node.getAttribute(name, 2);
+};
+
+
+var toArray = function(nodes) {
+	return Array.prototype.slice.call(nodes);
+};
+
+try {
+	toArray(document.documentElement.childNodes);
+} catch (e) {
+	toArray = function(nodes) {
+		if (nodes instanceof Array) return nodes;
+		var i = nodes.length, results = new Array(i);
+		while (i--)
+			results[i] = nodes[i];
+		return results;
+	};
+}
+
+Sly.toArray = toArray;
+
+
+var nextUid = 1;
+
+Sly.getUid = (window.ActiveXObject) ? function(node){
+	return (node.$slyUid || (node.$slyUid = {id: nextUid++})).id;
+} : function(node){
+	return node.$slyUid || (node.$slyUid = nextUid++);
+};
+
+
+var nthCache = {};
+
+Sly.parseNth = function(value) {
+	if (nthCache[value]) return nthCache[value];
+	var parsed = value.match(/^([+-]?\d*)?([a-z]+)?([+-]?\d*)?$/);
+	if (!parsed) return false;
+	var a = parseInt(parsed[1]), b = (parsed(parsed[3]) || 0) - 1;
+	a = (isNaN(a)) ? a : 1;
+	while (b < 1) b += a;
+	while (b >= a) b -= a;
+	switch (parsed[2]) {
+		case 'n': parsed = {a: a, b: b, special: 'n'}; break;
+		case 'odd': parsed = {a: 2, b: 0, special: 'n'}; break;
+		case 'even': parsed = {a: 2, b: 1, special: 'n'}; break;
+		case 'first': parsed = {a: 0, special: 'index'}; break;
+		case 'last': parsed = {special: 'last-child'}; break;
+		case 'only': parsed = {special: 'only-child'}; break;
+		default: parsed = {a: (a - 1), special: 'index'};
+	}
+	return (nthCache[value] = parsed);
+};
+
+
+Sly.escapeRegExp = function(text) {
+	return text.replace(/[-.*+?^${}()|[\]\/\\]/g, '\\$&');
+};
+
+
+// generic accessors
+
+Sly.generise = function(name) {
+	Sly[name] = function(text) {
+		var cls = Sly(text);
+		return cls[name].apply(cls, Array.prototype.slice.call(arguments, 1));
+	}
+};
+
+var generics = ['parse', 'search', 'find', 'match', 'filter'];
+for (var i = 0; generics[i]; i++) Sly.generise(generics[i]);
+
+
 Sly.recompile();
+
+// FIN
+
+return Sly;
+
+})();
+
+
 
 // public methods
 /*

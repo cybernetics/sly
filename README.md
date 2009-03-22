@@ -7,12 +7,12 @@ and match DOM elements. A *framework independent* drop-in solution.
 
  * Fast and intelligent query algorithm for *best performance*
  * *Optimisations* for frequently used selectors
- * No dependencies on other libraries
- * Less than **3 kb** ([shrinked](http://dean.edwards.name/packer/) and [gzipped](http://en.wikipedia.org/wiki/Gzip) or *5kb* [Base62 encoded](http://dean.edwards.name/packer/))
- * *Extensible* pseudo selectors, attribute operators and combinators
- * JS libraries can override internal methods, e.g. `getAttribute`
+ * No dependencies on other JS libraries
+ * *Extensible* custom pseudo selectors, attribute operators and combinators
+ * JS libraries can override internal methods (e.g. `getAttribute`)
  * *Standalone* CSS3 parser generates a *reusable* JS representation from selectors
  * Representations and their computed methods are cached
+ * **3 kb** ([shrinked](http://dean.edwards.name/packer/) and [gzipped](http://en.wikipedia.org/wiki/Gzip) or *5kb* [Base62 encoded](http://dean.edwards.name/packer/))
  * Code follows the MooTools philosophy, respecting strict standards, throwing no warnings and using meaningful variable names
 
 ## The Tale About The "Why" 
@@ -38,17 +38,24 @@ Enjoy reading the code, this the following is a work in progress:
 
 ### Sly.parse
 
-	var list = Sly.parse(sequence (*string*)[, compute *function*])
+	var list = Sly(text).parse() = Sly.parse(text);
 
 Splits a sequence of CSS selectors into their JS representation, an `Array` of `Objects`.
+This is only done once, afterwards the created Array is reused in `search`, `match`, etc.
 
 #### Flow
 
 	var example = 'ul#my-list > li.selected a:nth-child("odd"), a[href^=#]';
-	console.log(Sly.parse(example));
 	
-... returns an `Array` with 3 `Objects`, one for every selector in the
-group. *For better readability, properties with empty Arrays (e.g. classes) false or null are left out*:
+	// use an instance:
+	var query = new Sly(example); // "new " is not needed, just feels better ;)
+	console.log(query.parse());
+	
+	// access with generic methods
+	console.log(Sly.parse(example));
+
+... returns an `Array` with 4 `Objects`, one for every selector in the 2 groups.
+*For better readability, properties with empty Arrays (e.g. classes) false or null are left out*:
 
 	[
 		{
@@ -91,12 +98,13 @@ group. *For better readability, properties with empty Arrays (e.g. classes) fals
 
 ### Sly.search
 
-	var nodes = Sly.search(sequence (*string*)[, context *node*]);
+	var nodes = Sly.search(text[, context]) = Sly(text).search([context]);
 
 ### Sly.find
 
-	var node = Sly.find(sequence (*string*)[, context *node*]);
+	var node = Sly(text).find(context) = Sly.find(text[, context]);
 
-### Sly.match
+### Sly::match
 
-	var bool = Sly.match(node (*node*), squence *string*);
+	Boolean = Sly(text).match(node) = Sly.match(text, node);
+
