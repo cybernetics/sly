@@ -1,62 +1,139 @@
 # Sly - The JavaScript Selector Engine
 
-Cutting-edge JavaScript helper for parsing *CSS3 selectors* to find
-and match DOM elements. A *framework independent* drop-in solution.
+> Sly is a JavaScript class for querying DOM documents using *[CSS3 selectors](http://www.w3.org/TR/css3-selectors/)*, that is agile, *cross-browser* and *library agnostic*.
+
 
 ## Features
 
- * Fast and intelligent query algorithm for *best performance*
- * *Optimisations* for frequently used selectors
- * No dependencies on other JS libraries
- * *Extensible* custom pseudo selectors, attribute operators and combinators
- * JS libraries can override internal methods (e.g. `getAttribute`)
- * *Standalone* CSS3 parser generates a *reusable* JS representation from selectors
- * Representations and their computed methods are cached
- * **3 kb** ([shrinked](http://dean.edwards.name/packer/) and [gzipped](http://en.wikipedia.org/wiki/Gzip) or *5kb* [Base62 encoded](http://dean.edwards.name/packer/))
- * Code follows the MooTools philosophy, respecting strict standards, throwing no warnings and using meaningful variable names
+ * Powerful and clever match algorithm for *fast* and *accurate* queries
+ * *Optimisations* for frequently used selectors and latest browser features
+ * Works uniformly in `DOM` documents, fragments and `XML` documents
+ * Assisting methods for matching and filtering of elements
+ * *Stand-alone selector parser* to produce JavaScript `Object` representations
+ * *Customisable* pseudo-classes, attribute operators and combinators
+ * **3 kB** ([shrinked](http://dean.edwards.name/packer/) and [gzipped](http://en.wikipedia.org/wiki/Gzip) or *6 kB* [Base62 encoded](http://dean.edwards.name/packer/))
+ * No dependencies on other JS libraries, but developers can override internal methods (e.g. `getAttribute`)
+ * Code follows the [MooTools](http://mootools.net) philosophy, respecting strict standards, throwing no warnings and using meaningful variable names
 
-## The Tale About The "Why" 
 
-I started with the first version of Sly as [MooTools](http://mootools.net) [branch](http://svn.mootools.net/branches/NewSelectorParser/) in February 2008.
-Later on, the branch was forgotten, since Valerio did a great job to optimize selectors for the 1.2 release.
-When discussions about fast and accurate selector engines came up again in the last months, I recovered and updated
-my old obsession to check it against the new kids on the block.
+## Usage
 
-It was and still is just an *exercise*, relaxation for an *optimisation addict* like me. I hope it inspires other developers and
-libraries, incorporating the whole source or only pick some snippets.
+Sly is all about selectors and applying them to elements.
 
-## Credits
+### Basic Syntax
 
-It was once branched from [MooTools](http://mootools.net) (somewhere between 1.11 and 1.2) so it follows its architecture and uses overlapping helpers.
+> *`engine`*  =  **`Sly`**`(selector);`
+>
+> *`result`*  =  `engine.`*`method`*`(...);`
 
- * Thanks to [Steven Levithan](http://blog.stevenlevithan.com/), the master of regular expressions, for all the optimisation tips.
- * Additional custom pseudo-classes on jQuery.
+**Arguments**: `selector` (*required*) is a CCS selector.
 
-## How Does It Work
+**Returns**: The **Sly** instance, holding all the methods for querying and matching elements (*instances are cached*).
 
-Enjoy reading the code, this the following is a work in progress:
+Shorter notation:
 
-### Sly.parse
+> *`result`*  =  **`Sly`**`(selector).`*`method`*`(...);`
 
-	var list = Sly(text).parse() = Sly.parse(text);
+### Sly generics
 
-Splits a sequence of CSS selectors into their JS representation, an `Array` of `Objects`.
+Every method is also accessible in a different notation:
+
+> *`result`*  =  **`Sly`**`.`*`method`*`(selector, ...);`
+
+Examples:
+
+	found = Sly.search(selector, parent)
+	// is the same as
+	found = Sly(selector).search(parent);
+	
+	bool = new Sly(selector).match(someElement);
+	// is the same as
+	bool = Sly.match(match, someElement);
+
+### Querying with *search* and *find*
+
+> *`elements`*  =  **`Sly`**`(selector).search([parent]);`
+
+**Arguments**: parent (*optional*) the document or an element.
+
+**Returns**: The method  a JavaScript `Array` of elements. It will be empty if there was no match.
+
+Examples:
+
+	// Finds all div blocks
+	blocks = Sly.search('div');
+	
+	// Finds all anchors with `href` attribute that starts with `"http://"`
+	anchors = Sly.search('a[href^="http://"]');
+	
+	// Finds all list item that are direct descendants of the list item with id `"navigation"`
+	items = Sly.search('ul#navigation > li');
+	
+	// Finds all heading elements
+	heads = Sly.search('h1, h2, h3, h4, h5, h6');
+	
+	// Finds all odd rows in all tables with the class `"zebra"`
+	rows = Sly.search('table.zebra tr:odd');
+	
+	// Finds something and looks really complex
+	inputs = Sly.search('form[action$=/send/] label~span+input[type=text]:first-child');
+
+You can also query for a *single* element:
+
+> *`element`*  =  **`Sly`**`.find(selector[, parent]);`
+
+**Returns**: The first matched element or `null`.
+
+#### Descendants
+
+Descendants can be at the beginning of a selector, using the optional `parent` element as reference.
+
+	parent = Sly.find('#content')
+	
+	// Finds every second descendant children of parent
+	children = Sly.search('> :odd', parent);
+	
+	// Finds the next slibing of parent, if its an anchor
+	anchors = Sly.find('+ a');
+	
+	// Finds all slibings from parent that are `div` blocks
+	blocks = Sly.find('~div');
+	
+	// Finds all descendant children, of all descendant children, of all descendant children, of all descendant children of parent
+	items = Sly.find('>>>>');
+
+### Matching with *Sly* and *Sly*
+
+> *`bool`*  =  **`Sly`**`(selector).match(element);`
+
+**Argument**: element (*required*) to check against.
+
+**Returns**: `true` if the `element` matches the `selector` properties, otherwise `false`.
+
+> *`bool`*  =  **`Sly`**`(selector).filter(elements);`
+
+**Argument**: element (*required*) to check against.
+
+**Returns**: A new `Array` of elements, containing all the elements that matched the `selector` properties.
+
+### Parsing with *parse*
+
+> *`list`*  =  **`Sly`**`(selector).parse([plain]);`
+
+**Arguments**: If `plain` (*optional*) is `true`, the parser will not call `Sly.compute` to add additional search and match
+methods to the representation.
+
+**Returns**: Splits a sequence of CSS selectors into their JavaScript representation, an `Array` of `Objects` for every selector.
 This is only done once, afterwards the created Array is reused in `search`, `match`, etc.
 
-#### Flow
+Parsed example:
 
-	var example = 'ul#my-list > li.selected a:nth-child("odd"), a[href^=#]';
-	
-	// use an instance:
-	var query = new Sly(example); // "new " is not needed, just feels better ;)
-	console.log(query.parse());
-	
-	// access with generic methods
-	console.log(Sly.parse(example));
+	example = 'ul#my-list > li.selected a:nth-child("odd"), a[href^=#]';
+	parsed = Sly.parse(example);
 
-... returns an `Array` with 4 `Objects`, one for every selector in the 2 groups.
-*For better readability, properties with empty Arrays (e.g. classes) false or null are left out*:
+Returns an `Array` with 4 `Objects`, one for every selector in the 2 groups:
 
+	// Properties with empty `Arrays` (e.g. `classes`) `false` or `null` are left out in this scheme
 	[
 		{
 			tag: 'ul',
@@ -89,22 +166,33 @@ This is only done once, afterwards the created Array is reused in `search`, `mat
 		}
 	]
 
+
 #### Specifications
 
  * The parser does not validate the sequence
- * The universal selector `*` is not saved to the tag property
- * Values for pseudo or attribute values *can* be wrapped in `""` or `''`, only required for complex values or better readability.
- * The second parameter `compute` is called on every `Object` (see `Sly.compute()`).
+ * The universal selector `"*"` is not saved to the `tag` property
+ * Values for pseudo-classes or attributes *can* be wrapped in `""` or `''`, only required for *complex* values or better readability
 
-### Sly.search
 
-	var nodes = Sly.search(text[, context]) = Sly(text).search([context]);
+## The Tale About The "Why" 
 
-### Sly.find
+I started with the first version of Sly as [MooTools](http://mootools.net) [branch](http://svn.mootools.net/branches/NewSelectorParser/) in February 2008.
+Later on, the branch was forgotten, since [Valerio](http://mad4milk.net) did a great job to optimize selectors for the 1.2 release.
+When discussions about fast and accurate selector engines came up again in the last months, I recovered and updated
+my old obsession to check it against the new kids on the block.
 
-	var node = Sly(text).find(context) = Sly.find(text[, context]);
+It was and still is just an *exercise*, relaxation for an *optimisation addict* like me. I hope it inspires other developers and
+libraries, incorporating the whole source or only pick some snippets.
 
-### Sly::match
 
-	Boolean = Sly(text).match(node) = Sly.match(text, node);
+## Credits
 
+It was once branched from [MooTools](http://mootools.net) (somewhere between 1.11 and 1.2) so it follows its architecture and uses overlapping helpers.
+
+ * Thanks to [Steven Levithan](http://blog.stevenlevithan.com/), the master of regular expressions, for all the optimisation tips
+ * Additional custom pseudo-classes on jQuery
+
+
+## Licence
+
+See [LICENSE](LICENSE).

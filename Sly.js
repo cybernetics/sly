@@ -23,8 +23,6 @@ var cache = {};
  * Sly::constructor
  */
 var Sly = function(text) {
-	if (text == null) return null;
-
 	// normalise
 	text = (typeof(text) == 'string') ? text.replace(/^\s+/, '') : ''
 
@@ -480,12 +478,10 @@ Sly.prototype.compute = function(selector) {
 	}
 
 	for (i = 0; (item = selector.attributes[i]); i++) {
-
 		match = chain(match, matchAttribute, prepareAttribute(item));
-
 	}
 
-	if (selector.simple = !(match)) {
+	if ((selector.simple = !(match))) {
 		selector.matchAux = empty;
 	} else {
 		selector.matchAux = match;

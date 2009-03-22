@@ -152,26 +152,26 @@ var computed;
 describe('Sly.compute', {
 
 	'Should return an Array': function() {
-		computed = Sly.parse('a', Sly.compute);
+		computed = Sly.parse('a');
 		value_of(computed).should_have(1, 'length');
 	},
 
 	'Should add search, match and matchAux methods': function() {
-		computed = Sly.parse('a', Sly.compute);
+		computed = Sly.parse('a');
 		value_of(computed[0]).should_include('search');
 		value_of(computed[0]).should_include('match');
 		value_of(computed[0]).should_include('matchAux');
 	},
 
 	'Should set simple false when matchAux is needed': function() {
-		computed = Sly.parse('[attr], :pseudo, tag:pseudo', Sly.compute);
+		computed = Sly.parse('[attr], :pseudo, tag:pseudo');
 		value_of(computed[0].simple).should_be_false();
 		value_of(computed[1].simple).should_be_false();
 		value_of(computed[2].simple).should_be_false();
 	},
 
 	'Should set simple true when matchAux is not needed': function() {
-		computed = Sly.parse('a, .classX, #id, tag#id', Sly.compute);
+		computed = Sly.parse('a, .classX, #id, tag#id');
 		value_of(computed[0].simple).should_be_true();
 		value_of(computed[1].simple).should_be_true();
 		value_of(computed[2].simple).should_be_true();
