@@ -102,6 +102,15 @@ Descendants can be at the beginning of a selector, using the optional `parent` e
 	// Finds all descendant children, of all descendant children, of all descendant children, of all descendant children of parent
 	items = Sly.find('>>>>');
 
+
+#### Customisation
+	
+[Sly.Custom](master/Sly.Custom.js) provides more extensions for
+
+ * Combinators like `<` (*parent element*) or `^` (*previous slibing*)
+ * Attribute operators like `[title/="^Item \\d+$"]` (*regular expression match*)
+ * Pseudo-classes like `:hidden` and `:enabled`
+
 ### Matching with *Sly* and *Sly*
 
 > *`bool`*  =  **`Sly`**`(selector).match(element);`
@@ -195,4 +204,4 @@ It was once branched from [MooTools](http://mootools.net) (somewhere between 1.1
 
 ## Licence
 
-See [LICENSE](LICENSE).
+See [LICENSE](master/LICENSE).
