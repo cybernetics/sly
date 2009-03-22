@@ -23,13 +23,13 @@ var cache = {};
  * Sly::constructor
  */
 var Sly = function(text) {
+	if (text == null) return null;
 
-	// if (text instanceof Array) text = text.join(','); // vote for it
-
-	text = (typeof(text) == 'string') ? text.replace(/^\s+/, '') : '';
+	// normalise
+	text = (typeof(text) == 'string') ? text.replace(/^\s+/, '') : ''
 
 	return cache[text] || (cache[text] = new Sly.initialize(text));
-}
+};
 
 Sly.initialize = function(text) {
 	this.text = text;
@@ -42,7 +42,6 @@ Sly.initialize.prototype = Sly.prototype;
  * Sly.implement
  */
 Sly.implement = function(key, properties, recompile) {
-	console.log(key);
 	for (var prop in properties) Sly[key][prop] = properties[prop];
 };
 
@@ -63,26 +62,25 @@ var locateFast = function() {
 /**
  * Sly::search
  */
-Sly.prototype.search = function(context, limit) {
+Sly.prototype.search = function(context, reduce) {
 	context = context || document;
 
-	// if (limit) limit = (limit > 1) ? limit : 1; // VOTE for it
+	var results; // overall result
 
 	if (Sly.features.querySelector && context.nodeType == 9) {
 		try {
-			return Sly.toArray(context.querySelectorAll(text));
+			results = context.querySelectorAll(this.text);
 		} catch(e) {}
+		if (results) return (reduce) ? results[0] : Sly.toArray(results);
 	}
 
 	var parsed = this.parse();
 
-	var results, // overall result
-		combined, // found nodes from one iteration process
+	var combined, // found nodes from one iteration process
 		nodes, // context nodes from one iteration process
 		current, // unique ids for one iteration process
 		all = {}, // unique ids for overall result
 		state = {}; // matchers temporary state
-		;
 
 	// unifiers
 	var getUid = Sly.getUid;
@@ -116,16 +114,16 @@ Sly.prototype.search = function(context, limit) {
 			for (var k = 0, l = nodes.length; k < l; k++) combined = selector.combine(combined, nodes[k], state, locate);
 		}
 		if (selector.last) {
-			results = combined;
-			// if (limit && results.length >= limit) break;
+			if (combined.length) {
+				if (reduce) return combined[0];
+				results = combined;
+			}
 		} else {
 			nodes = combined;
 		}
 	}
 
-	// if (limit) return (limit > 1) ? results.slice(0, limit) : results[0];
-
-	return results || [];
+	return (reduce) ? ((results) ? results[0] : null) : (results || []);
 };
 
 
@@ -133,7 +131,7 @@ Sly.prototype.search = function(context, limit) {
  * Sly::find
  */
 Sly.prototype.find = function(context) {
-	return this.search(context, 1);
+	return this.search(context, true);
 };
 
 
@@ -151,7 +149,7 @@ Sly.prototype.match = function(node) {
 Sly.prototype.filter = function(nodes) {
 	var results = [], match = this.parse()[0].match;
 	for (var i = 0, node; (node = nodes[i]); i++) {
-		if (match[node]) results.push(node);
+		if (match(node)) results.push(node);
 	}
 	return results;
 };
@@ -164,7 +162,6 @@ var pattern;
 
 Sly.recompile = function() {
 
-	// ,+>~
 	var combList = [','];
 	for (var key in combinators) {
 		if (key != ' ') {
@@ -172,7 +169,6 @@ Sly.recompile = function() {
 		}
 	}
 
-	// !*^$~|\\/
 	var operList = ['!'];
 	for (var key in operators) operList.push(key);
 
@@ -180,8 +176,8 @@ Sly.recompile = function() {
 	  The regexp is a group of every possible selector part including combinators.
 	  "|" separates the possible selectors.
 
-		Capturing parentheses (several groups don't need them):
-		1 - Combinator (only needed to match multiple-char combinators)
+		Capturing parentheses:
+		1 - Combinator (only requires to allow multiple-character combinators)
 		2 - Attribute name
 		3 - Attribute operator
 		4, 5, 6 - The value
@@ -190,23 +186,44 @@ Sly.recompile = function() {
 	 */
 
 	pattern = new RegExp(
-		// A tagname, "*" is not matched because it is not a tagname that we would need
+		// A tagname
 		'[\\w\\u00c0-\\uFFFF][\\w\\u00c0-\\uFFFF-]*|' +
+
 		// An id or the classname
 		'[#.][\\w\\u00c0-\\uFFFF-]+|' +
+
 		// Whitespace (descendant combinator)
 		'[ \\t\\r\\n\\f](?=[\\w\\u00c0-\\uFFFF*#.[:])|' +
+
 		// Other combinators and the comma
 		'(' + combList.join('|') + ')[ \\t\\r\\n\\f]*|' +
+
 		// An attribute, with the various and optional value formats ([name], [name=value], [name="value"], [name='value']
 		'\\[([\\w\\u00c0-\\uFFFF-]+)(?:([' + operList.join('') + ']?=)(?:"([^"]*)"|\'([^\']*)\'|([^\\]]*)))?]|' +
+
 		// A pseudo-class, with various formats
 		':([-\\w\\u00c0-\\uFFFF]+)(?:\\((?:"([^"]*)"|\'([^\']*)\'|([^)]*))\\))?|' +
-		// The universial selector, usually ignored
+
+		// The universial selector, not process
 		'\\*', 'g'
 	);
 };
 
+
+// I prefer it outside, not sure if this is faster
+var create = function(combinator) {
+	return {
+		ident: [],
+		classes: [],
+		attributes: [],
+		pseudos: [],
+		combinator: combinator
+	};
+};
+
+var blank = function($0) {
+	return $0;
+};
 
 /**
  * Sly::parse
@@ -225,27 +242,10 @@ Sly.recompile = function() {
  *   ident: (Array) All parsed matches, can be used as cache identifier.
  * }
  */
-
-// I prefer it outside, not sure if this is faster
-var create = function(combinator) {
-	return {
-		ident: [],
-		classes: [],
-		attributes: [],
-		pseudos: [],
-		combinator: combinator
-	};
-};
-
-var blank = function($0) {
-	return $0;
-};
-
 Sly.prototype.parse = function(plain) {
 	var save = (plain) ? 'plain' : 'parsed';
 	if (this[save]) return this[save];
 
-	var text = this.text;
 	var compute = (plain) ? blank : this.compute;
 
 	var parsed = [], current = create(null);
@@ -258,7 +258,7 @@ Sly.prototype.parse = function(plain) {
 
 	var match, $0;
 
-	while ((match = pattern.exec(text))) {
+	while ((match = pattern.exec(this.text))) {
 		$0 = match[0];
 
 		switch ($0.charAt(0)) {
@@ -321,50 +321,48 @@ function chain(prepend, append, aux, unshift) {
 	return fn;
 };
 
-var comperators = {
 
-	empty: function() {
-		return true;
-	},
+// prepared match comperators, probably needs namespacing
+var empty = function() {
+	return true;
+};
 
-	matchId: function(node, id) {
-		return (node.id == id);
-	},
+var matchId = function(node, id) {
+	return (node.id == id);
+};
 
-	matchTag: function(node, tag) {
-		return (node.nodeName == tag);
-	},
+var matchTag = function(node, tag) {
+	return (node.nodeName == tag);
+};
 
-	prepareClass: function(name) {
-		return (new RegExp('(?:^|[ \\t\\r\\n\\f])' + name + '(?:$|[ \\t\\r\\n\\f])'));
-	},
+var prepareClass = function(name) {
+	return (new RegExp('(?:^|[ \\t\\r\\n\\f])' + name + '(?:$|[ \\t\\r\\n\\f])'));
+};
 
-	matchClass: function(node, expr) {
-		return node.className && expr.test(node.className);
-	},
+var matchClass = function(node, expr) {
+	return node.className && expr.test(node.className);
+};
 
-	prepareAttribute: function(attr) {
-		if (!attr.operator || !attr.value) return attr;
-		var parser = operators[attr.operator];
-		if (parser) { // @todo: Allow functions, not only regex
-			attr.escaped = Sly.escapeRegExp(attr.value);
-			attr.pattern = new RegExp(parser(attr.value, attr.escaped, attr));
-		}
-		return attr;
-	},
+var prepareAttribute = function(attr) {
+	if (!attr.operator || !attr.value) return attr;
+	var parser = operators[attr.operator];
+	if (parser) { // @todo: Allow functions, not only regex
+		attr.escaped = Sly.escapeRegExp(attr.value);
+		attr.pattern = new RegExp(parser(attr.value, attr.escaped, attr));
+	}
+	return attr;
+};
 
-	matchAttribute: function(node, attr) {
-		var read = Sly.getAttribute(node, attr.name);
-		switch (attr.operator) {
-			case null: return read;
-			case '=': return (read == attr.value);
-			case '!=': return (read != attr.value);
-		}
-
-		if (!read && attr.value) return false;
-		return attr.pattern.test(read);
+var matchAttribute = function(node, attr) {
+	var read = Sly.getAttribute(node, attr.name);
+	switch (attr.operator) {
+		case null: return read;
+		case '=': return (read == attr.value);
+		case '!=': return (read != attr.value);
 	}
 
+	if (!read && attr.value) return false;
+	return attr.pattern.test(read);
 };
 
 
@@ -393,7 +391,7 @@ Sly.prototype.compute = function(selector) {
 	if (id) {
 		tagged = true;
 
-		matchSearch = chain(matchSearch, comperators.matchId, id);
+		matchSearch = chain(matchSearch, matchId, id);
 
 		search = function(context) {
 			if (context.getElementById) {
@@ -410,10 +408,11 @@ Sly.prototype.compute = function(selector) {
 	}
 
 	if (classes.length > 0) {
+
 		if (!search && Sly.features.elementsByClass) {
 
 			for (i = 0; (item = classes[i]); i++) {
-				matchSearch = chain(matchSearch, comperators.matchClass, comperators.prepareClass(item));
+				matchSearch = chain(matchSearch, matchClass, prepareClass(item));
 			}
 
 			var joined = classes.join(' ');
@@ -425,8 +424,8 @@ Sly.prototype.compute = function(selector) {
 
 			tagged = true;
 
-			var expr = comperators.prepareClass(classes[0]);
-			matchSearch = chain(matchSearch, comperators.matchClass, expr);
+			var expr = prepareClass(classes[0]);
+			matchSearch = chain(matchSearch, matchClass, expr);
 
 			search = function(context) {
 				var query = context.getElementsByTagName(tag || '*');
@@ -440,7 +439,7 @@ Sly.prototype.compute = function(selector) {
 		} else {
 
 			for (i = 0; (item = classes[i]); i++) {
-				match = chain(match, comperators.matchClass, comperators.prepareClass(item));
+				match = chain(match, matchClass, prepareClass(item));
 			}
 
 		}
@@ -449,13 +448,13 @@ Sly.prototype.compute = function(selector) {
 	if (tag) {
 
 		if (!search) {
-			matchSearch = chain(matchSearch, comperators.matchTag, nodeName);
+			matchSearch = chain(matchSearch, matchTag, nodeName);
 
 			search = function(context) {
 				return context.getElementsByTagName(tag);
 			};
 		} else if (!tagged) { // search does not filter by tag yet
-			match = chain(match, comperators.matchTag, nodeName);
+			match = chain(match, matchTag, nodeName);
 		}
 
 	} else if (!search) { // default engine
@@ -475,23 +474,25 @@ Sly.prototype.compute = function(selector) {
 			}, {});
 		} else {
 			var parser = pseudos[item.name];
-			match = (parser) ? chain(match, parser, item.value) : chain(match, comperators.matchAttribute, comperators.prepareAttribute(item))
+			match = (parser) ? chain(match, parser, item.value) : chain(match, matchAttribute, prepareAttribute(item))
 		}
 
 	}
 
 	for (i = 0; (item = selector.attributes[i]); i++) {
-		match = chain(match, comperators.matchAttribute, comperators.prepareAttribute(item));
+
+		match = chain(match, matchAttribute, prepareAttribute(item));
+
 	}
 
-	if ((selector.simple = !(match))) {
-		selector.matchAux = comperators.empty;
+	if (selector.simple = !(match)) {
+		selector.matchAux = empty;
 	} else {
 		selector.matchAux = match;
 		matchSearch = chain(matchSearch, match);
 	}
 
-	selector.match = matchSearch || comperators.empty;
+	selector.match = matchSearch || empty;
 
 	selector.combine = Sly.combinators[selector.combinator || ' '];
 
@@ -671,8 +672,7 @@ try {
 	toArray = function(nodes) {
 		if (nodes instanceof Array) return nodes;
 		var i = nodes.length, results = new Array(i);
-		while (i--)
-			results[i] = nodes[i];
+		while (i--) results[i] = nodes[i];
 		return results;
 	};
 }
@@ -730,11 +730,11 @@ var generics = ['parse', 'search', 'find', 'match', 'filter'];
 for (var i = 0; generics[i]; i++) Sly.generise(generics[i]);
 
 
+// compile pattern for the first time
+
 Sly.recompile();
 
-// FIN
-
-return Sly;
+return Sly; // FIN
 
 })();
 
