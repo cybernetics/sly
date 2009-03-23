@@ -20,39 +20,46 @@
 
 **Sly** is all about selectors and matching them against elements.
 
+
 ### Basic Syntax
 
-> *`engine`*  =  **`Sly`**`(selector);`
->
-> *`result`*  =  `engine.`*`method`*`(...);`
+	engine = Sly(selector);
+	result = engine.method(...);
 
 **Arguments**: `selector` (*required*) is a CCS selector.
 
 **Returns**: The **Sly** instance, holding all the methods for querying and matching elements (*instances are cached*).
 
-Shorter notation:
+Shorter notation without variable:
 
-> *`result`*  =  **`Sly`**`(selector).`*`method`*`(...);`
+	result = Sly(selector).method(...);
+
 
 ### Sly generics
 
 Every method is also accessible in a different notation:
 
-> *`result`*  =  **`Sly`**`.`*`method`*`(selector, ...);`
+	result = Sly.method(selector, ...);
 
 Examples:
 
 	found = Sly.search(selector, parent)
+	
 	// is the same as
+	
 	found = Sly(selector).search(parent);
 	
+	// and to make it clear:
+	
 	bool = new Sly(selector).match(someElement);
+	
 	// is the same as
-	bool = Sly.match(match, someElement);
+	
+	bool = Sly.match(selector, someElement);
 
 ### Querying with *search* and *find*
 
-> *`elements`*  =  **`Sly`**`(selector).search([parent]);`
+	elements = Sly(selector).search([parent]);
 
 **Arguments**: parent (*optional*) the document or an element.
 
@@ -78,9 +85,11 @@ Examples:
 	// Finds something and looks really complex
 	inputs = Sly.search('form[action$=/send/] label~span+input[type=text]:first-child');
 
-You can also query for a *single* element:
+#### Single result
 
-> *`element`*  =  **`Sly`**`.find(selector[, parent]);`
+You can also reduce the queried result to a *single* element:
+
+	element = Sly.find(selector[, parent]);
 
 **Returns**: The first matched element or `null`.
 
@@ -94,13 +103,13 @@ Descendants can be at the beginning of a selector, using the optional `parent` e
 	children = Sly.search('> :odd', parent);
 	
 	// Finds the next slibing of parent, if its an anchor
-	anchors = Sly.find('+ a');
+	anchors = Sly.find('+ a', parent);
 	
 	// Finds all slibings from parent that are `div` blocks
-	blocks = Sly.find('~div');
+	blocks = Sly.find('~div', parent);
 	
 	// Finds all descendant children, of all descendant children, of all descendant children, of all descendant children of parent
-	items = Sly.find('>>>>');
+	items = Sly.find('>>>>', parent);
 
 
 #### Customisation
@@ -113,21 +122,21 @@ Descendants can be at the beginning of a selector, using the optional `parent` e
 
 ### Matching with *match* and *find*
 
-> *`bool`*  =  **`Sly`**`(selector).match(element);`
+	bool = Sly(selector).match(element);
 
-**Argument**: element (*required*) to check against.
+**Argument**: `element` (*required*) to check against.
 
 **Returns**: `true` if the `element` matches the `selector` properties, otherwise `false`.
 
-> *`bool`*  =  **`Sly`**`(selector).filter(elements);`
+	bool = Sly(selector).filter(elements);
 
-**Argument**: element (*required*) to check against.
+**Argument**: `element` (*required*) to check against.
 
 **Returns**: A new `Array` of elements, containing all the elements that matched the `selector` properties.
 
 ### Parsing with *parse*
 
-> *`list`*  =  **`Sly`**`(selector).parse([plain]);`
+	list = Sly(selector).parse([plain]);
 
 **Arguments**: If `plain` (*optional*) is `true`, the parser will not call `Sly.compute` to add additional search and match
 methods to the representation.
@@ -195,6 +204,19 @@ to release it to the public.
 I hope it inspires other developers to incorporate it completely or take apart the source so that it is used within their libraries or work.
 
 
+## Planned
+
+ * Support for more *pseudo-classes* like `:root`, but do people really need them?
+ * Support for namespaces, e.g. `ns|tag-name`
+
+
+## Licence & Copyright
+
+See [MIT-LICENSE](master/MIT-LICENSE).
+
+This documentation is released under a Attribution-NonCommercial-ShareAlike 3.0 License.
+
+
 ## Credits
 
 It was once branched from [*MooTools*](http://mootools.net) (somewhere between 1.11 and 1.2) so it follows its architecture and uses overlapping helpers.
@@ -202,7 +224,3 @@ It was once branched from [*MooTools*](http://mootools.net) (somewhere between 1
  * Thanks to [*Steven Levithan*](http://blog.stevenlevithan.com/), the master of regular expressions, for all the optimisation tips
  * Additional custom pseudo-classes on *jQuery*
 
-
-## Licence
-
-See [LICENSE](master/LICENSE).
