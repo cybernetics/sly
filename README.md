@@ -11,7 +11,7 @@
  * Assisting methods for matching and filtering of elements
  * *Stand-alone selector parser* to produce *JavaScript* `Object` representations
  * *Customisable* pseudo-classes, attribute operators and combinators
- * **3 kB** ([minified](http://developer.yahoo.com/yui/compressor/) and [gzipped](http://www.gzip.org/))
+ * **3 kB** ([minified](http://developer.yahoo.com/yui/compressor/) and [gzipped](http://www.gzip.org/), **8 kB** without *gzip*)
  * No dependencies on JS libraries, but developers can override internal methods (e.g. `getAttribute`) for seamless integration
  * Code follows the [MooTools](http://mootools.net) philosophy, respecting strict standards, throwing no warnings and using meaningful variable names
 
