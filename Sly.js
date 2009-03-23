@@ -22,7 +22,7 @@ var proto = Sly.initialize.prototype = Sly.prototype;
 /**
  * Sly.implement
  */
-Sly.implement = function(key, properties, recompile) {
+Sly.implement = function(key, properties) {
 	for (var prop in properties) Sly[key][prop] = properties[prop];
 };
 
@@ -67,7 +67,7 @@ proto.search = function(context, reduce) {
 
 	// unifiers
 	var getUid = Sly.getUid;
-	var locateCurrent = function(node){
+	var locateCurrent = function(node) {
 		var uid = getUid(node);
 		return (current[uid]) ? null : (current[uid] = true);
 	};
@@ -670,9 +670,9 @@ Sly.toArray = toArray;
 
 var nextUid = 1;
 
-Sly.getUid = (window.ActiveXObject) ? function(node){
+Sly.getUid = (window.ActiveXObject) ? function(node) {
 	return (node.$slyUid || (node.$slyUid = {id: nextUid++})).id;
-} : function(node){
+} : function(node) {
 	return node.$slyUid || (node.$slyUid = nextUid++);
 };
 
