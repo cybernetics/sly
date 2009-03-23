@@ -1,50 +1,42 @@
-/**
- * Sly - The JavaScript Selector Engine
- *
- * Custom combinators, pseudos and operators
- *
- * @version: preview
- *
- * @author: Harald Kirschner <http://digitarald.de>
- * @copyright: Authors
- *
- * @license: MIT-style license.
- */
-
+/*! Sly v1.0rc0 <http://sly.digitarald.com> - (C) 2009 Harald Kirschner <http://digitarald.de> - Open source under MIT License */
 
  Sly.implement('combinators', {
 
 	// Custom combinators, from MooTools Slick.js
 
-	'<': function(combined, context, state, locate){
+	// Returns all matched parent items
+	'<': function(combined, context, selector, state, locate){
 	  while ((context = context.parentNode) && context.nodeType !== 9) {
-	    if (locate(context) && this.match(context, state)) combined.push(context);
+	    if (locate(context) && selector.match(context, state)) combined.push(context);
 	  }
 	},
 
-	'^': function(combined, context, state, locate){
-	  context = context.firstChild;
-	  if (context){
-	    if (node.nodeType === 1 && locate(context) && this.match(context, state)) combined.push(context);
-	    else Sly.combinators['+'].call(this, combined, context, state);
+	// Returns the first matched descendant children
+	'^': function(combined, context, selector, state, locate){
+	  if ((context = context.firstChild)){
+	    if (node.nodeType === 1 && locate(context) && selector.match(context, state)) combined.push(context);
+	    else Sly.combinators['+'](combined, context, selector, context, state);
 	  }
 	},
 
-	'++': function(combined, context, state, locate){
+	// Returns all matched next slibings
+	'++': function(combined, context, selector, state, locate){
 		while ((context = context.nextSibling)) {
 			if (context.nodeType === 1 && locate(context) && this.match(context, state)) combined.push(context);
 		}
 		return combined;
 	},
 
-	'--': function(combined, context, state, locate){
+	// Returns all matched previous slibings
+	'--': function(combined, context, selector, state, locate){
 		while ((context = context.previousSibling)) {
 			if (context.nodeType === 1 && locate(context) && this.match(context, state)) combined.push(context);
 		}
 		return combined;
 	},
 
-	'±': function(combined, context, state, locate){
+	// Returns all matched slibings
+	'±': function(combined, context, selector, state, locate){
 		return Sly.combinators['--'].call(Sly.combinators['++'].call(combined, context, state, uniques), context, state, uniques);
 	}
 

@@ -1,24 +1,24 @@
 # Sly - The JavaScript Selector Engine
 
-> Sly is a JavaScript class for querying DOM documents using *[CSS3 selectors](http://www.w3.org/TR/css3-selectors/)*, that is agile, *cross-browser* and *library agnostic*.
+> **Sly** is a JavaScript class for querying DOM documents using *[CSS3 selectors](http://www.w3.org/TR/css3-selectors/)*, that is agile, *cross-browser* and *library agnostic*.
 
 
 ## Features
 
- * Powerful and clever match algorithm for *fast* and *accurate* queries
- * *Optimisations* for frequently used selectors and latest browser features
+ * Powerful and pure *JavaScript* match algorithm for *fast* and *accurate* queries
+ * Extra optimisations for *frequently used selectors* and *latest browser features*
  * Works uniformly in `DOM` documents, fragments and `XML` documents
  * Assisting methods for matching and filtering of elements
- * *Stand-alone selector parser* to produce JavaScript `Object` representations
+ * *Stand-alone selector parser* to produce *JavaScript* `Object` representations
  * *Customisable* pseudo-classes, attribute operators and combinators
- * **3 kB** ([shrinked](http://dean.edwards.name/packer/) and [gzipped](http://en.wikipedia.org/wiki/Gzip) or *6 kB* [Base62 encoded](http://dean.edwards.name/packer/))
- * No dependencies on other JS libraries, but developers can override internal methods (e.g. `getAttribute`)
+ * **3 kB** ([minified](http://developer.yahoo.com/yui/compressor/) and [gzipped](http://www.gzip.org/))
+ * No dependencies on JS libraries, but developers can override internal methods (e.g. `getAttribute`) for seamless integration
  * Code follows the [MooTools](http://mootools.net) philosophy, respecting strict standards, throwing no warnings and using meaningful variable names
 
 
 ## Usage
 
-Sly is all about selectors and applying them to elements.
+**Sly** is all about selectors and matching them against elements.
 
 ### Basic Syntax
 
@@ -56,7 +56,7 @@ Examples:
 
 **Arguments**: parent (*optional*) the document or an element.
 
-**Returns**: The method  a JavaScript `Array` of elements. It will be empty if there was no match.
+**Returns**: The method  a *JavaScript* `Array` of elements. It will be empty if there was no match.
 
 Examples:
 
@@ -107,11 +107,11 @@ Descendants can be at the beginning of a selector, using the optional `parent` e
 	
 [Sly.Custom](master/Sly.Custom.js) provides more extensions for
 
- * Combinators like `<` (*parent element*) or `^` (*previous slibing*)
+ * Combinators like `<` (*parent element*), `^` (*previous slibing*) or `<^±^>` (*The-Combinator-Smilie*)
  * Attribute operators like `[title/="^Item \\d+$"]` (*regular expression match*)
  * Pseudo-classes like `:hidden` and `:enabled`
 
-### Matching with *Sly* and *Sly*
+### Matching with *match* and *find*
 
 > *`bool`*  =  **`Sly`**`(selector).match(element);`
 
@@ -132,7 +132,7 @@ Descendants can be at the beginning of a selector, using the optional `parent` e
 **Arguments**: If `plain` (*optional*) is `true`, the parser will not call `Sly.compute` to add additional search and match
 methods to the representation.
 
-**Returns**: Splits a sequence of CSS selectors into their JavaScript representation, an `Array` of `Objects` for every selector.
+**Returns**: Splits a sequence of CSS selectors into their *JavaScript* representation, an `Array` of `Objects` for every selector.
 This is only done once, afterwards the created Array is reused in `search`, `match`, etc.
 
 Parsed example:
@@ -176,7 +176,7 @@ Returns an `Array` with 4 `Objects`, one for every selector in the 2 groups:
 	]
 
 
-#### Specifications
+#### Some Specifications
 
  * The parser does not validate the sequence
  * The universal selector `"*"` is not saved to the `tag` property
@@ -185,21 +185,22 @@ Returns an `Array` with 4 `Objects`, one for every selector in the 2 groups:
 
 ## The Tale About The "Why" 
 
-I started with the first version of Sly as [MooTools](http://mootools.net) [branch](http://svn.mootools.net/branches/NewSelectorParser/) in February 2008.
-Later on, the branch was forgotten, since [Valerio](http://mad4milk.net) did a great job to optimize selectors for the 1.2 release.
+I started with the first version of **Sly** as [*MooTools*](http://mootools.net) [branch](http://svn.mootools.net/branches/NewSelectorParser/) in February 2008.
+Later on, the branch was forgotten, since [*Valerio*](http://mad4milk.net) did a great job to optimise selectors for the `1.2` release.
 When discussions about fast and accurate selector engines came up again in the last months, I recovered and updated
-my old obsession to check it against the new kids on the block.
+my old obsession to check it against the new kids on the block. The results were surprising, so I added documentation and specs
+to release it to the public.
 
-It was and still is just an *exercise*, relaxation for an *optimisation addict* like me. I hope it inspires other developers and
-libraries, incorporating the whole source or only pick some snippets.
+**Sly** was, and still is, just an *exercise*, relaxation for an *optimisation addict* like me. 
+I hope it inspires other developers to incorporate it completely or take apart the source so that it is used within their libraries or work.
 
 
 ## Credits
 
-It was once branched from [MooTools](http://mootools.net) (somewhere between 1.11 and 1.2) so it follows its architecture and uses overlapping helpers.
+It was once branched from [*MooTools*](http://mootools.net) (somewhere between 1.11 and 1.2) so it follows its architecture and uses overlapping helpers.
 
- * Thanks to [Steven Levithan](http://blog.stevenlevithan.com/), the master of regular expressions, for all the optimisation tips
- * Additional custom pseudo-classes on jQuery
+ * Thanks to [*Steven Levithan*](http://blog.stevenlevithan.com/), the master of regular expressions, for all the optimisation tips
+ * Additional custom pseudo-classes on *jQuery*
 
 
 ## Licence

@@ -265,7 +265,23 @@ describe('Sly.find', {
 
 });
 
-describe('Custom - Sly.parse', {
+
+describe('Sly.operators', {
+
+});
+
+
+describe('Sly.combinators', {
+
+});
+
+
+describe('Sly.pseudos', {
+
+});
+
+
+describe('Custom Sly.parse', {
 
 	'Should parse combinator <': function() {
 		value_of(Sly.parse('a < b')[1].combinator).should_be('<');
