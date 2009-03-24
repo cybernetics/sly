@@ -32,7 +32,7 @@ Sly.implement = function(key, properties) {
  *
  * @todo Check proper support with more tests
  */
-Sly.features = {
+var features = Sly.features = {
 	querySelector: !!(document.querySelectorAll),
 	elementsByClass: !!(document.getElementsByClassName)
 };
@@ -45,7 +45,7 @@ var locateFast = function() {
 /**
  * Sly::search
  */
-proto.search = function(context, reduce) {
+proto.search = function(context) {
 	var iterate;
 
 	if (!context) context = document;
@@ -53,17 +53,20 @@ proto.search = function(context, reduce) {
 
 	var results; // overall result
 
-	if (!iterate && Sly.features.querySelector && context.nodeType == 9) {
+	if (features.querySelector && !iterate && context.nodeType == 9) {
 		try {
 			results = context.querySelectorAll(this.text);
 		} catch(e) {}
-		if (results) return (reduce) ? results[0] : Sly.toArray(results);
+		if (results) return Sly.toArray(results);
 	}
 
 	var parsed = this.parse();
 
-	// unique ids for one iteration process
-	var current = {};
+	var current = {}, // unique ids for one iteration process
+		combined, // found nodes from one iteration process
+		nodes, // context nodes from one iteration process
+		all = {}, // unique ids for overall result
+		state = {}; // matchers temporary state
 
 	// unifiers
 	var getUid = Sly.getUid;
@@ -71,11 +74,6 @@ proto.search = function(context, reduce) {
 		var uid = getUid(node);
 		return (current[uid]) ? null : (current[uid] = true);
 	};
-
-	var combined, // found nodes from one iteration process
-		nodes, // context nodes from one iteration process
-		all = {}, // unique ids for overall result
-		state = {}; // matchers temporary state
 
 	for (var i = 0, selector; (selector = parsed[i]); i++) {
 
@@ -106,16 +104,13 @@ proto.search = function(context, reduce) {
 			}
 		}
 		if (selector.last) {
-			if (combined.length) {
-				if (reduce) return combined[0];
-				results = combined;
-			}
+			if (combined.length) results = combined;
 		} else {
 			nodes = combined;
 		}
 	}
 
-	return (reduce) ? ((results) ? results[0] : null) : (results || []);
+	return results || [];
 };
 
 
@@ -123,7 +118,7 @@ proto.search = function(context, reduce) {
  * Sly::find
  */
 proto.find = function(context) {
-	return this.search(context, true);
+	return this.search(context)[0];
 };
 
 
@@ -463,7 +458,8 @@ proto.compute = function(selector) {
 			}, Sly(item.value).parse()[0].match);
 		} else {
 			var parser = pseudos[item.name];
-			match = (parser) ? chain(match, parser, item.value) : chain(match, matchAttribute, prepareAttribute(item))
+			// chain(match, matchAttribute, prepareAttribute(item))
+			if (parser) match = chain(match, parser, item.value);
 		}
 
 	}
@@ -681,12 +677,16 @@ var nthCache = {};
 
 Sly.parseNth = function(value) {
 	if (nthCache[value]) return nthCache[value];
+
 	var parsed = value.match(/^([+-]?\d*)?([a-z]+)?([+-]?\d*)?$/);
 	if (!parsed) return false;
-	var a = parseInt(parsed[1]), b = (parsed(parsed[3]) || 0) - 1;
-	a = (isNaN(a)) ? a : 1;
-	while (b < 1) b += a;
-	while (b >= a) b -= a;
+
+	var a = parseInt(parsed[1], 10), b = (parseInt(parsed[3], 10) || 0) - 1;
+
+	if ((a = (isNaN(a)) ? 1 : a)) {
+		while (b < 1) b += a;
+		while (b >= a) b -= a;
+	}
 	switch (parsed[2]) {
 		case 'n': parsed = {a: a, b: b, special: 'n'}; break;
 		case 'odd': parsed = {a: 2, b: 0, special: 'n'}; break;
@@ -694,8 +694,9 @@ Sly.parseNth = function(value) {
 		case 'first': parsed = {a: 0, special: 'index'}; break;
 		case 'last': parsed = {special: 'last-child'}; break;
 		case 'only': parsed = {special: 'only-child'}; break;
-		default: parsed = {a: (a - 1), special: 'index'};
+		default: parsed = {a: (a) ? (a - 1) : b, special: 'index'};
 	}
+
 	return (nthCache[value] = parsed);
 };
 
