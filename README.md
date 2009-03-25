@@ -6,7 +6,7 @@
 ## Features
 
  * Powerful and pure *JavaScript* match algorithm for *fast* and *accurate* queries
- * Extra optimisations for *frequently used selectors* and *latest browser features*
+ * Optimisations for *frequently used selectors* and *widespread* browsers
  * Works uniformly in `DOM` documents, fragments and `XML` documents
  * Assisting methods for matching and filtering of elements
  * *Stand-alone selector parser* to produce *JavaScript* `Object` representations

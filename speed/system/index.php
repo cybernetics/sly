@@ -14,9 +14,9 @@
 		}
 	}
 	
-	$css_list = array('' => 'Default', 'simple' => 'Simple', 'extended' => 'Extended', 'crazy' => 'Just crazy');
+	$css_list = array('' => 'Default', 'simple' => 'Simple', 'extended' => 'Extended', 'yahoo' => 'Yahoo (via ejohn)', 'crazy' => 'Just crazy');
 
-	$css = 'default';
+	$css = '';
 	if (isset($_REQUEST['css'])) {
 		if (array_key_exists($_REQUEST['css'], $css_list)) {
 			$css = $_REQUEST['css'];
@@ -27,6 +27,25 @@
 
 	if (!$valid) {
 		header('Location: ' . $_SERVER['SCRIPT_NAME']);
+		exit;
+	}
+	
+	$link = $_SERVER['SCRIPT_NAME'];
+	
+	if (!$valid) {
+		header('Location: ' . $link);
+		exit;
+	}
+	
+	if ($css || $special) {
+		$build = array();
+		if ($css) $build['css'] = $css;
+		if ($special) $build['special'] = $special;
+		$link = $link . '?' . http_build_query($build, '', '&');
+	}
+	
+	if (count($_POST)) {
+		header('Location: ' . $link);
 		exit;
 	}
 
@@ -78,8 +97,9 @@
 			'function' => $properties['function'],
 			'initialize' => isset($properties['initialize']) ? $properties['initialize'] : '',
 			'special' => $special,
+			'css' => $css,
 			'nocache' => $time
-		), '&amp;');
+		), '', '&amp;');
 
 		echo '<iframe name="' . $framework . '" src="system/template.php?' . $query . '"></iframe>';
 	}
@@ -147,6 +167,16 @@
 
 <?php include('footer.html'); ?>
 </div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-601848-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
 
 </body>
 </html>

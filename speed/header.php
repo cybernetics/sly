@@ -13,17 +13,11 @@
 	selector list against
 	<select name="special" onchange="this.form.submit();" title="Many browser engines only run on document, these tests reveal the pure JavaScipt part of selector engines.">
 <?php	foreach($special_list as $key => $value): ?>
-		<option value="<?= $key ?>"<?= ($key == $css) ? ' selected="selected"' : '' ?>><?= $value ?></option>
+		<option value="<?= $key ?>"<?= ($key == $special) ? ' selected="selected"' : '' ?>><?= $value ?></option>
 <?php	endforeach; ?>
 	</select>
 	case
-<?php if ($css != 'default' || $special):
-	$build = array();
-	if ($css) $build['css'] = $css;
-	if ($special) $build['css'] = $special;
-?>
-	<small>(<a href="index.php?<?= http_build_query($build, '&amp;') ?>">Copy Link</a>)</small>
-<?php endif; ?>.
+	<small>(<a href="<?= $link ?>">Refresh/Copy Link</a>)</small>
 </p>
 </form>
 
