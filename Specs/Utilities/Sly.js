@@ -164,7 +164,7 @@ describe('Sly.compute', {
 	},
 
 	'Should set simple false when matchAux is needed': function() {
-		computed = Sly.parse('[attr], :pseudo, tag:pseudo');
+		computed = Sly.parse('[attr], :empty, tag:nth-child');
 		value_of(computed[0].simple).should_be_false();
 		value_of(computed[1].simple).should_be_false();
 		value_of(computed[2].simple).should_be_false();

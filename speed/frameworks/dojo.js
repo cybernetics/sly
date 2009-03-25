@@ -240,7 +240,7 @@ dojo.global = {
 =====*/
 	dojo.locale = d.config.locale;
 	
-	var rev = "$Rev: 15385 $".match(/\d+/);
+	var rev = "$Rev: 15997 $".match(/\d+/);
 
 	dojo.version = {
 		// summary: 
@@ -255,7 +255,7 @@ dojo.global = {
 		//		Descriptor flag. If total version is "1.2.0beta1", will be "beta1"
 		//	revision: Number
 		//		The SVN rev from which dojo was pulled
-		major: 1, minor: 2, patch: 0, flag: "",
+		major: 1, minor: 2, patch: 3, flag: "",
 		revision: rev ? +rev[0] : 999999, //FIXME: use NaN?
 		toString: function(){
 			with(d.version){
@@ -6441,7 +6441,7 @@ dojo.provide("dojo._base.query");
 		if(attr == "style"){
 			return elem.style.cssText || blank;
 		}
-		return elem.getAttribute(attr, 2) || blank;
+		return (caseSensitive ? elem.getAttribute(attr) : elem.getAttribute(attr, 2)) || blank;
 	}
 
 	var attrs = {
@@ -6615,7 +6615,7 @@ dojo.provide("dojo._base.query");
 	var defaultGetter = (d.isIE) ? function(cond){
 		var clc = cond.toLowerCase();
 		return function(elem){
-			return elem[cond]||elem[clc];
+			return (caseSensitive ? elem.getAttribute(cond) : elem[cond]||elem[clc]);
 		}
 	} : function(cond){
 		return function(elem){
@@ -6832,19 +6832,6 @@ dojo.provide("dojo._base.query");
 	// future
 	var getQueryFunc = function(query){
 		// return a cached version if one is available
-		var qcz = query.charAt(0);
-		if(d.doc["querySelectorAll"] && 
-			( (!d.isSafari) || (d.isSafari > 3.1) ) && // see #5832
-			// as per CSS 3, we can't currently start w/ combinator:
-			//		http://www.w3.org/TR/css3-selectors/#w3cselgrammar
-			(">+~".indexOf(qcz) == -1)
-		){
-			return function(root){
-				var r = root.querySelectorAll(query);
-				r.nozip = true; // skip expensive duplication checks and just wrap in a NodeList
-				return r;
-			};
-		}
 		if(_queryFuncCache[query]){ return _queryFuncCache[query]; }
 		if(0 > query.indexOf(",")){
 			// if it's not a compound query (e.g., ".foo, .bar"), cache and return a dispatcher

@@ -1,26 +1,39 @@
 <?php
-
 	$frameworks = parse_ini_file('config.ini', true);
+
+	$valid = true;
 	
-	/*
-	if (isset($_POST['run_data'])) {
-		
-		if (!isset($_COOKIE['run_id'])) {
-			header('Location: index.php');
-			exit;
+	$special_list = array('' => 'Default', 'loose' => 'Loose DOM Fragment', 'xml' => 'XML Document');
+	
+	$special = '';
+	if (isset($_REQUEST['special'])) {
+		if (array_key_exists($_REQUEST['special'], $special_list)) {
+			$special = $_REQUEST['special'];
+		} else {
+			$valid = false;
 		}
-		
-		$_COOKIE['run_id'] = null;
-		$data = explode(';', $_POST['run_data']);
-		
-		// saving things
-		
-		header('Location: index.php');
+	}
+	
+	$css_list = array('' => 'Default', 'simple' => 'Simple', 'extended' => 'Extended', 'crazy' => 'Just crazy');
+
+	$css = 'default';
+	if (isset($_REQUEST['css'])) {
+		if (array_key_exists($_REQUEST['css'], $css_list)) {
+			$css = $_REQUEST['css'];
+		} else {
+			$valid = false;
+		}
+	}
+
+	if (!$valid) {
+		header('Location: ' . $_SERVER['SCRIPT_NAME']);
 		exit;
 	}
-	*/
-	
-	$selectors = file_get_contents('selectors.list.css');
+
+	$file = 'selectors.list.css';
+	if ($css) $file = 'selectors.list.' . $css . '.css';
+
+	$selectors = file_get_contents($file);
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -53,20 +66,22 @@
 		<a class="start" href="#">start tests</a>
 	</div>
 
-<?php include('header.html'); ?>
+<?php include('header.php'); ?>
 
 <?php
-	$special = '';
-
-	if (isset($_GET['special']) && preg_match('/[a-z]+/', $_GET['special'])) {
-		$special = $_GET['special'];
-	}
 
 	foreach ($frameworks as $framework => $properties){
-		$include = $properties['file'];
-		$function = $properties['function'];
 		$time = time();
-		echo "<iframe name='$framework' src='system/template.php?include=$include%3F$time&function=$function&nocache=$time&special=$special'></iframe>\n\n";
+
+		$query = http_build_query(array(
+			'include' => $properties['file'] . '?' . $time,
+			'function' => $properties['function'],
+			'initialize' => isset($properties['initialize']) ? $properties['initialize'] : '',
+			'special' => $special,
+			'nocache' => $time
+		), '&amp;');
+
+		echo '<iframe name="' . $framework . '" src="system/template.php?' . $query . '"></iframe>';
 	}
 ?>
 

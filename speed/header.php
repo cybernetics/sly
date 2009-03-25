@@ -1,13 +1,34 @@
 <h1><span>SlickSpeed</span></h1>
-<h2>speed/validity selectors test for frameworks.</h2>
-<p>Every framework runs in his own iFrame, thus no conflicts can happen. Tests are run selector by selector, with an interval to prevent the browser from freeezing.</p>
-<p>Tests are run in a neutral environment, no library or framework is included in the main javascript test, to avoid favoritism.</p>
 
-<p>Tests are run against a local copy of <a href="http://www.w3.org/TR/2001/CR-css3-selectors-20011113/">this document</a>.</p>
-
+<form action="./index.php" method="post" style="float: right">
 <p>
-	Available templates <sup style="color: red">NEW!</sup>:
-	<a href="index.php" title="Selectors are tested on normal document.">Default</a> |
-	<a href="index.php?special=loose" title="Selectors are tested on the detached DOM fragment (no parent node).">Loose DOM Fragment</a> |
-	<a href="index.php?special=xml" title="Selectors are tested on an XML document (fuzzy in IE, yet).">XML Document</a>
-</p> 
+	<input type="submit" style="display: none;" />
+	<sup style="color: red">NEW!</sup>
+	Check
+	<select name="css" onchange="this.form.submit();" title="Choose between common and rare selectors. Be aware that not all will work on the template document (0 results).">
+<?php	foreach($css_list as $key => $value): ?>
+		<option value="<?= $key ?>"<?= ($key == $css) ? ' selected="selected"' : '' ?>><?= $value ?></option>
+<?php	endforeach; ?>
+	</select>
+	selector list against
+	<select name="special" onchange="this.form.submit();" title="Many browser engines only run on document, these tests reveal the pure JavaScipt part of selector engines.">
+<?php	foreach($special_list as $key => $value): ?>
+		<option value="<?= $key ?>"<?= ($key == $css) ? ' selected="selected"' : '' ?>><?= $value ?></option>
+<?php	endforeach; ?>
+	</select>
+	case
+<?php if ($css != 'default' || $special):
+	$build = array();
+	if ($css) $build['css'] = $css;
+	if ($special) $build['css'] = $special;
+?>
+	<small>(<a href="index.php?<?= http_build_query($build, '&amp;') ?>">Copy Link</a>)</small>
+<?php endif; ?>.
+</p>
+</form>
+
+<h2>speed/validity selectors test for frameworks.</h2>
+<p>
+	Every framework runs in his own iFrame, thus no conflicts can happen. Tests are run selector by selector, with an interval to prevent the browser from freeezing.
+	Tests are run in a neutral environment (against a local copy of <a href="http://www.w3.org/TR/2001/CR-css3-selectors-20011113/">this document</a>), no library or framework is included in the main javascript test, to avoid favoritism.
+</p>

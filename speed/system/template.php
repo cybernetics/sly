@@ -1,5 +1,7 @@
 <?php
 	$template = '../template.html';
+
+	$arguments = $_GET['arguments'] ? $_GET['arguments'] : ''
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -21,44 +23,73 @@
 		var context = document;
 
 <?php	if ($_GET['special'] == 'loose'): ?>
+
 		window.onload = function() {
+			// all selectors engines fail on a fragment, therefore an element
 			context = document.createElement('div');
 			context.innerHTML = document.body.innerHTML; // I feel dirty!
 			document.body.innerHTML = '';
 		};
-<?php	elseif ($_GET['special'] == 'xml'):
-				$template = '../template.xml.html';
-?>
-		// Copyright 2009 by Harald Kirschner <http://digitarald.de>
-		function createXML(text, options) {
-			options = options || {error: true};
-			var doc, root;
 
-			try {
-				if (window.ActiveXObject){
-					doc = new ActiveXObject('Microsoft.XMLDOM');
-					doc.async = false;
-					doc.preserveWhiteSpace = true;
-					doc.validateOnParse = false;
-					doc.loadXML(text);
-					if (doc.parseError.errorCode) throw new Error(doc.parseError.reason);
-					root = doc.documentElement;
-				} else if (window.DOMParser) {
-					doc = new DOMParser().parseFromString(text, (options.html) ? 'text/html' : 'text/xml');
-					root = doc.documentElement;
-					if (root.nodeName == 'parsererror') throw new Error(root.firstChild.nodeValue);
-				}
-			} catch (e) {
-				if (options.error) throw e;
-				return null;
-			}
+<?php	elseif ($_GET['special'] == 'xml'): ?>
 
-			return root;
-		}
+		// from http://www.webreference.com/programming/javascript/definitive2/
+		var newDocument = function(rootTagName, namespaceURL) {
+		  if (!rootTagName) rootTagName = "";
+		  if (!namespaceURL) namespaceURL = "";
+		  if (document.implementation && document.implementation.createDocument) {
+		    // This is the W3C standard way to do it
+		    return document.implementation.createDocument(namespaceURL, rootTagName, null);
+		  }
+		  else { // This is the IE way to do it
+		    // Create an empty document as an ActiveX object
+		    // If there is no root element, this is all we have to do
+		    var doc = new ActiveXObject("MSXML2.DOMDocument");
+		    // If there is a root tag, initialize the document
+		    if (rootTagName) {
+		      // Look for a namespace prefix
+		      var prefix = "";
+		      var tagname = rootTagName;
+		      var p = rootTagName.indexOf(':');
+		      if (p != -1) {
+		        prefix = rootTagName.substring(0, p);
+		        tagname = rootTagName.substring(p+1);
+		      }
+		      // If we have a namespace, we must have a namespace prefix
+		      // If we don't have a namespace, we discard any prefix
+		      if (namespaceURL) {
+		        if (!prefix) prefix = "a0"; // What Firefox uses
+		      }
+		      else prefix = "";
+		      // Create the root element (with optional namespace) as a
+		      // string of text
+		      var text = "<" + (prefix?(prefix+":"):"") +  tagname +
+		          (namespaceURL
+		           ?(" xmlns:" + prefix + '="' + namespaceURL +'"')
+		           :"") +
+		          "/>";
+		      // And parse that text into the empty document
+		      doc.loadXML(text);
+		    }
+		    return doc;
+		  }
+		};
+
 
 		window.onload = function() {
-			context = createXML('<div>' + document.body.innerHTML + '</div>', {error: true, html: false}); // I feel dirty!
-			document.body.innerHTML = '';
+			context = newDocument('digi:root', 'http://digitarald.com/'); // I feel dirty!
+
+			try {
+				for (var i = 0, child; (child = document.body.childNodes[i]); i++) {
+					context.firstChild.appendChild(context.importNode(child, true));
+					child.parentNode.removeChild(child);
+				}
+			} catch(e) {
+				alert('IE Can`t Touch This!');
+			};
+
+
+			// document.body.innerHTML = '';
 		};
 <?php	endif; ?>
 
@@ -69,9 +100,17 @@
 				var start = new Date();
 				var i = 0;
 
+<?php	if (isset($_GET['initialize'])): ?>
+				<?= $_GET['initialize'] ?>(selector);
+<?php	endif; ?>
+
+<?php	if (strpos($_GET['function'], '%') === false):
+				$_GET['function'] = $_GET['function'] . '(%1$s, %2$s)';
+			endif; ?>
+
 <?php	for ($i = 0; $i < 10; $i++): ?>
 				times[i]={ start:new Date() };
-				var elements = <?php echo $_GET['function']; ?>(selector, context);
+				var elements = <?php echo sprintf($_GET['function'], 'selector', 'context') ?>;
 				times[i++].end = new Date();
 <?php	endfor; ?>
 
