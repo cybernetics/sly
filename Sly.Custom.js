@@ -80,7 +80,7 @@ Sly.implement('pseudos', {
 
 	// Matches all elements that are checked.
 	'checked': function(node) {
-		return (node.checked == true);
+		return (node.checked == true || node.selected == true);
 	}
 
 	// ... be creative and add yours ;)

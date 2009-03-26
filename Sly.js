@@ -45,7 +45,7 @@ var locateFast = function() {
 /**
  * Sly::search
  */
-proto.search = function(context) {
+proto.search = function(context, ordered) {
 	var iterate;
 
 	if (!context) context = document;
@@ -62,7 +62,8 @@ proto.search = function(context) {
 
 	var parsed = this.parse();
 
-	var current = {}, // unique ids for one iteration process
+	var unsorted, // results need to be sorted, comma
+		current = {}, // unique ids for one iteration process
 		combined, // found nodes from one iteration process
 		nodes, // context nodes from one iteration process
 		all = {}, // unique ids for overall result
@@ -104,15 +105,29 @@ proto.search = function(context) {
 			}
 		}
 		if (selector.last) {
-			if (combined.length) results = combined;
+			if (combined.length) {
+				results = combined;
+				unsorted = true;
+			}
 		} else {
 			nodes = combined;
 		}
 	}
 
+	if (ordered && unsorted && results.length > 1) {
+		if (document.compareDocumentPosition) {
+			results.sort(function (a, b) {
+				return (3 - (a.compareDocumentPosition(b) & 6));
+			});
+		} else if (results[0].sourceIndex != null) {
+			results.sort(function (a, b) {
+				return (a.sourceIndex - b.sourceIndex);
+			});
+		}
+	}
+
 	return results || [];
 };
-
 
 /**
  * Sly::find

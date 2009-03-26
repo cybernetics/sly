@@ -1,18 +1,18 @@
 # Sly - The JavaScript Selector Engine
 
-> **Sly** is a JavaScript class for querying DOM documents using *[CSS3 selectors](http://www.w3.org/TR/css3-selectors/)*, that is agile, *cross-browser* and *library agnostic*.
+> **Sly** is a turbocharged, cross-browser, library-agnostic JavaScript class for querying DOM documents using *[CSS3 selectors](http://www.w3.org/TR/css3-selectors/)*.
 
 
 ## Features
 
- * Powerful and pure *JavaScript* match algorithm for *fast* and *accurate* queries
- * Optimisations for *frequently used selectors* and *widespread* browsers
- * Works uniformly in `DOM` documents, fragments and `XML` documents
- * Assisting methods for matching and filtering of elements
- * *Stand-alone selector parser* to produce *JavaScript* `Object` representations
- * *Customisable* pseudo-classes, attribute operators and combinators
- * **3 kB** ([minified](http://developer.yahoo.com/yui/compressor/) and [gzipped](http://www.gzip.org/), **8 kB** without *gzip*)
- * No dependencies on JS libraries, but developers can override internal methods (e.g. `getAttribute`) for seamless integration
+ * Pure and powerful *JavaScript* matching algorithm for *fast* and *accurate* queries
+ * Extra optimizations for *frequently used selectors* and *latest browser features*
+ * Works uniformly in `DOM` documents, fragments or `XML` documents
+ * Utility methods for matching and filtering of elements
+ * *Standalone selector parser* to produce *JavaScript* `Object` representations
+ * *Customizable* pseudo-classes, attribute operators and combinators
+ * Just **3 kB**! ([minified](http://developer.yahoo.com/yui/compressor/) and [gzipped](http://www.gzip.org/), **8 kB** without *gzip*)
+ * No dependencies on third-party JS libraries, but developers can override internal methods (like `getAttribute`) for seamless integration.
  * Code follows the [MooTools](http://mootools.net) philosophy, respecting strict standards, throwing no warnings and using meaningful variable names
 
 

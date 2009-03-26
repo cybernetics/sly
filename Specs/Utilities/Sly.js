@@ -247,6 +247,22 @@ describe('Sly.search Fragment', {
 		value_of(Sly.search('a span .classX', tree)).should_have(0, 'items');
 	},
 
+	'Should return an unordered Array by default (no qsa)': function() {
+		var items = Sly.search('dd, dt', tree);
+		value_of(items).should_have(6, 'items');
+		value_of(items[0].id).should_be('dd-1');
+		value_of(items[3].id).should_be('dt-1');
+		value_of(items[5].id).should_be('dt-2');
+	},
+
+	'Should return an ordered Array if requested': function() {
+		var items = Sly.search('dd, dt', tree, true);
+		value_of(items).should_have(6, 'items');
+		value_of(items[0].id).should_be('dt-1');
+		value_of(items[1].id).should_be('dd-1');
+		value_of(items[4].id).should_be('dt-2');
+	},
+
 	'Should return elements with prepended combinator': function() {
 		value_of(Sly.search('>', tree)).should_have(3, 'items');
 		value_of(Sly.search('> span', tree)).should_have(0, 'items');
