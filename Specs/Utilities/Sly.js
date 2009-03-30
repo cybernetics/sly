@@ -38,11 +38,22 @@ describe('Sly.parse', {
 		value_of(Sly.parse(':pseudo[attribute]#id')[0].id).should_be('id');
 	},
 
+	'Should parse ids with escaped chars': function() {
+		value_of(Sly.parse('#i\\:d')[0].id).should_be('i:d');
+		value_of(Sly.parse('#i\\.d')[0].id).should_be('i.d');
+	},
+
 	'Should parse classes': function() {
 		value_of(Sly.parse('.classX')[0].classes).should_be(['classX']);
 		value_of(Sly.parse('.classX.classY')[0].classes).should_be(['classX', 'classY']);
 		value_of(Sly.parse('[attr].classX:pseudo.classY')[0].classes).should_be(['classX', 'classY']);
 		value_of(Sly.parse('.1st-class_0')[0].classes).should_be(['1st-class_0']);
+	},
+
+	'Should parse classes with escaped chars': function() {
+		value_of(Sly.parse('.class\\:X')[0].classes).should_be(['class:X']);
+		value_of(Sly.parse('a .class\\.Y')[1].classes).should_be(['class.Y']);
+		value_of(Sly.parse('a.class\\.Z:pseudo')[0].classes).should_be(['class.Z']);
 	},
 
 	'Should parse attributes': function() {
@@ -221,14 +232,9 @@ describe('Sly.match', {
 
 });
 
-var tree = document.createElement('div');
-tree.innerHTML = [
-	'<dl id="list"><dt id="dt-1">Term</dt><dd id="dd-1"><dl><dt>Subdesc</dt><dd>Subterm</dd></dl></dd><dt id="dt-2">Term</dt><dd id="dd-2">Desc</dd></dl>',
-	'<a href="#top" title="Title" class="classX classY"><span><span>Internal</span></span></a>',
-	'<a href="http://digitarald.de" rel="me">Home</a>'
-].join('\n');
-
-describe('Sly.search Fragment', {
+var searchSpecs = function(tree) {
+	
+return {
 
 	'Should return elements': function() {
 		value_of(Sly.search('*', tree)).should_have(12, 'items');
@@ -247,20 +253,20 @@ describe('Sly.search Fragment', {
 		value_of(Sly.search('a span .classX', tree)).should_have(0, 'items');
 	},
 
-	'Should return an unordered Array by default (no qsa)': function() {
+	'Should return an ordered Array': function() {
 		var items = Sly.search('dd, dt', tree);
-		value_of(items).should_have(6, 'items');
-		value_of(items[0].id).should_be('dd-1');
-		value_of(items[3].id).should_be('dt-1');
-		value_of(items[5].id).should_be('dt-2');
-	},
-
-	'Should return an ordered Array if requested': function() {
-		var items = Sly.search('dd, dt', tree, true);
 		value_of(items).should_have(6, 'items');
 		value_of(items[0].id).should_be('dt-1');
 		value_of(items[1].id).should_be('dd-1');
 		value_of(items[4].id).should_be('dt-2');
+	},
+
+	'Should optional return an unordered Array': function() {
+		var items = Sly.search('dd, dt', tree, true);
+		value_of(items).should_have(6, 'items');
+		value_of(items[0].id).should_be('dd-1');
+		value_of(items[3].id).should_be('dt-1');
+		value_of(items[5].id).should_be('dt-2');
 	},
 
 	'Should return elements with prepended combinator': function() {
@@ -271,12 +277,61 @@ describe('Sly.search Fragment', {
 		value_of(Sly.search('+ a')).should_have(0, 'items');
 	}
 
+};
+
+};
+
+var treeContext = document.createElement('div');
+treeContext.style.display = 'none';
+treeContext.innerHTML = [
+	'<dl id="list"><dt id="dt-1">Term</dt><dd id="dd-1"><dl><dt>Subdesc</dt><dd>Subterm</dd></dl></dd><dt id="dt-2">Term</dt><dd id="dd-2">Desc</dd></dl>',
+	'<a href="#top" title="Title" class="classX classY"><span><span>Internal</span></span></a>',
+	'<a href="http://digitarald.de" rel="me">Home</a>'
+].join('\n');
+document.documentElement.appendChild(treeContext);
+
+describe('Sly.search Context', searchSpecs(treeContext));
+
+
+describe('Sly.search Contexts', searchSpecs([treeContext, document.createElement('div')]));
+
+
+var tree = document.createElement('div');
+tree.innerHTML = [
+	'<dl id="list"><dt id="dt-1">Term</dt><dd id="dd-1"><dl><dt>Subdesc</dt><dd>Subterm</dd></dl></dd><dt id="dt-2">Term</dt><dd id="dd-2">Desc</dd></dl>',
+	'<a href="#top" title="Title" class="classX classY"><span><span>Internal</span></span></a>',
+	'<a href="http://digitarald.de" rel="me">Home</a>'
+].join('\n');
+
+describe('Sly.search Fragment', searchSpecs(treeContext));
+
+
+var treeQuirks = document.createElement('div');
+treeQuirks.innerHTML = [
+	'<a name="does-not-exist" class="A b"></a>'
+].join('\n');
+treeQuirks.appendChild(document.createComment('For IE'));
+
+describe('Sly.search Quirks', {
+
+	'Should return elements without comment nodes': function() {
+		value_of(Sly.search('*', treeQuirks)).should_have(1, 'items');
+	},
+
+	'Should not return elements with names similar to given ids': function() {
+		document.body.appendChild(treeQuirks);
+		value_of(Sly.search('#does-not-exist')).should_have(0, 'items');
+		value_of(Sly.search('#does-not-exist', treeQuirks)).should_have(0, 'items');
+		document.body.removeChild(treeQuirks);
+	}
+
 });
 
 
 describe('Sly.find', {
 
 	'Should return one element': function() {
+		value_of(Sly.find('body')).should_be(document.body);
 	}
 
 });
@@ -323,17 +378,19 @@ describe('Custom Sly.parse', {
 		value_of(Sly.parse('b --')[1].combinator).should_be('--');
 	},
 
+	/*
 	'Should parse combinator ±': function() {
 		value_of(Sly.parse('a ± b')[1].combinator).should_be('±');
 		value_of(Sly.parse('± b')[0].combinator).should_be('±');
 		value_of(Sly.parse('b ±')[1].combinator).should_be('±');
 	},
+	*/
 
 	'Should parse The-Combinator-Smilie': function() {
-		parsed = Sly.parse('<^±^>');
+		parsed = Sly.parse('<^+^>');
 		value_of(parsed[0].combinator).should_be('<');
 		value_of(parsed[1].combinator).should_be('^');
-		value_of(parsed[2].combinator).should_be('±');
+		value_of(parsed[2].combinator).should_be('+');
 		value_of(parsed[3].combinator).should_be('^');
 		value_of(parsed[4].combinator).should_be('>');
 	}

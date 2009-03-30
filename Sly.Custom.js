@@ -6,17 +6,19 @@
 
 	// Returns all matched parent nodes
 	'<': function(combined, context, selector, state, locate) {
-	  while ((context = context.parentNode) && context.nodeType !== 9) {
+		while ((context = context.parentNode) && context.nodeType !== 9) {
 	    if (locate(context) && selector.match(context, state)) combined.push(context);
 	  }
+		return combined;
 	},
 
 	// Returns the first matched descendant children
 	'^': function(combined, context, selector, state, locate) {
 	  if ((context = context.firstChild)) {
 	    if (node.nodeType === 1 && locate(context) && selector.match(context, state)) combined.push(context);
-	    else Sly.combinators['+'](combined, context, selector, context, state);
+	    else combined = Sly.combinators['+'](combined, context, selector, context, state);
 	  }
+		return combined;
 	},
 
 	// Returns all matched next slibings
@@ -33,12 +35,14 @@
 			if (context.nodeType === 1 && locate(context) && this.match(context, state)) combined.push(context);
 		}
 		return combined;
-	},
+	}
 
+	/*
 	// Returns all matched slibings
 	'±': function(combined, context, selector, state, locate) {
 		return Sly.combinators['--'].call(Sly.combinators['++'].call(combined, context, state, uniques), context, state, uniques);
 	}
+	*/
 
 });
 
@@ -50,12 +54,12 @@ Sly.implement('pseudos', {
 
 	// Matches all elements that are hidden.
 	'hidden': function(node) {
-		return (!node.offsetWidth || !node.offsetHeight);
+		return !(node.offsetWidth && node.offsetHeight);
 	},
 
 	// Matches all elements that are visible.
 	'visible': function(node) {
-		return (node.offsetWidth && node.offsetHeight);
+		return (node.offsetWidth || node.offsetHeight);
 	},
 
 	// Matches elements which contain at least one element that matches the specified selector.
@@ -70,7 +74,7 @@ Sly.implement('pseudos', {
 
 	// Matches all elements that are enabled.
 	'enabled': function(node) {
-		return (node.disabled != false);
+		return (node.disabled == false && node.type != 'hidden');
 	},
 
 	// Matches all elements that are enabled.
@@ -81,6 +85,27 @@ Sly.implement('pseudos', {
 	// Matches all elements that are checked.
 	'checked': function(node) {
 		return (node.checked == true || node.selected == true);
+	},
+
+	// More or less useful from jq
+	'input': function(node) {
+		return (node.type);
+	},
+
+	'radio': function(node) {
+		return (node.type == 'radio');
+	},
+
+	'checkbox': function(node) {
+		return (node.type == 'checkbox');
+	},
+
+	'text': function(node) {
+		return (node.type == 'text');
+	},
+
+	'header': function(node) {
+		return ((/^h\d$/i).test(node.tagName));
 	}
 
 	// ... be creative and add yours ;)

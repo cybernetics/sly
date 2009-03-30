@@ -1,4 +1,4 @@
-/*! Sly v1.0rc0 <http://sly.digitarald.com> - (C) 2009 Harald Kirschner <http://digitarald.de> - Open source under MIT License */
+/*! Sly v1.0rc1 <http://sly.digitarald.com> - (C) 2009 Harald Kirschner <http://digitarald.de> - Open source under MIT License */
 
 var Sly = (function() {
 
@@ -28,14 +28,43 @@ Sly.implement = function(key, properties) {
 
 
 /**
- * Sly.features
+ * Sly.support
  *
- * @todo Check proper support with more tests
+ * Filled with experiment results.
  */
-var features = Sly.features = {
-	querySelector: !!(document.querySelectorAll),
-	elementsByClass: !!(document.getElementsByClassName)
-};
+var support = Sly.support = {};
+
+// Checks similar to NWMatcher, Sizzle
+(function() {
+	
+	// Our guinea pig
+	var testee = document.createElement('div'), id = (new Date()).getTime();
+	testee.innerHTML = '<a name="' + id + '" class="Â b"></a>';
+	testee.appendChild(document.createComment(''));
+	
+	// IE returns comment nodes for getElementsByTagName('*')
+	support.byTagAddsComments = (testee.getElementsByTagName('*').length > 1);
+	
+	// Safari can't handle uppercase or unicode characters when in quirks mode.
+	support.hasQsa = !!(testee.querySelectorAll && testee.querySelectorAll('.Â').length);
+	
+	support.hasByClass = (function() {
+		if (!testee.getElementsByClassName || !testee.getElementsByClassName('.b').length) return false;
+		testee.firstChild.className = 'c';
+		return (testee.getElementsByClassName('.c').length == 1);
+	})();
+	
+	/* not needed, checks id by default (no speed issue)
+	var root = document.documentElement;
+	testee.insertBefore(root, root.firstChild);
+	
+	// IE returns named nodes for getElementById(name)
+	support.byIdAddsName = !!(document.getElementById(id));
+	
+	root.removeChild(testee);
+	*/
+	
+})();
 
 
 var locateFast = function() {
@@ -45,15 +74,25 @@ var locateFast = function() {
 /**
  * Sly::search
  */
-proto.search = function(context, ordered) {
+proto.search = function(context, unordered) {
 	var iterate;
 
-	if (!context) context = document;
-	else iterate = (context instanceof Array);
+	if (!context) {
+		context = document;
+	} else {
+		//console.log(this.text, context);
+		if (typeof(context) == 'string') {
+			context = Sly.search(context);
+			iterate = true;
+		} else if (typeof(context.length) == 'number' && typeof(context) != 'function') {
+			if (context.length == 1) context = context[0];
+			else iterate = true;
+		}
+	}
 
 	var results; // overall result
 
-	if (features.querySelector && !iterate && context.nodeType == 9) {
+	if (support.hasQsa && !iterate && context.nodeType == 9) {
 		try {
 			results = context.querySelectorAll(this.text);
 		} catch(e) {}
@@ -61,6 +100,7 @@ proto.search = function(context, ordered) {
 	}
 
 	var parsed = this.parse();
+	if (!parsed.length) return [];
 
 	var unsorted, // results need to be sorted, comma
 		current = {}, // unique ids for one iteration process
@@ -82,6 +122,7 @@ proto.search = function(context, ordered) {
 
 		if (selector.first) {
 			if (!results) locate = locateFast;
+			else unsorted = true;
 			if (iterate) nodes = context;
 			else if (selector.combinator) nodes = [context]; // allows combinators before selectors
 		}
@@ -95,7 +136,7 @@ proto.search = function(context, ordered) {
 			combined = [];
 		}
 
-		if (!selector.combinator) {
+		if (!selector.combinator && !iterate) {
 			// without prepended combinator
 			combined = selector.combine(combined, context, selector, state, locate, !(combined.length));
 		} else {
@@ -105,26 +146,14 @@ proto.search = function(context, ordered) {
 			}
 		}
 		if (selector.last) {
-			if (combined.length) {
-				results = combined;
-				unsorted = true;
-			}
+			if (!combined) alert(selector.combinator);
+			if (combined.length) results = combined;
 		} else {
 			nodes = combined;
 		}
 	}
 
-	if (ordered && unsorted && results.length > 1) {
-		if (document.compareDocumentPosition) {
-			results.sort(function (a, b) {
-				return (3 - (a.compareDocumentPosition(b) & 6));
-			});
-		} else if (results[0].sourceIndex != null) {
-			results.sort(function (a, b) {
-				return (a.sourceIndex - b.sourceIndex);
-			});
-		}
-	}
+	if (!unordered && unsorted && results) results.sort(Sly.compare);
 
 	return results || [];
 };
@@ -140,8 +169,19 @@ proto.find = function(context) {
 /**
  * Sly::match
  */
-proto.match = function(node) {
-	return !!(this.parse()[0].match(node, {}));
+proto.match = function(node, parent) {
+	var parsed = this.parse();
+	if (parsed.length == 1) return !!(this.parse()[0].match(node, {}));
+	if (!parent) {
+		parent = node;
+		while (parent.parentNode) parent = parent.parentNode
+	}
+	var found = this.search(parent), i = found.length;
+	if (!i--) return false;
+	while (i--) {
+		if (found[i] == node) return true;
+	}
+	return false;
 };
 
 
@@ -188,25 +228,25 @@ Sly.recompile = function() {
 
 	pattern = new RegExp(
 		// A tagname
-		'[\\w\\u00c0-\\uFFFF][\\w\\u00c0-\\uFFFF-]*|' +
+		'[\\w\\u00a1-\\uFFFF][\\w\\u00a1-\\uFFFF-]*|' +
 
 		// An id or the classname
-		'[#.][\\w\\u00c0-\\uFFFF-]+|' +
+		'[#.](?:[\\w\\u00a1-\\uFFFF-]|\\\\:|\\\\.)+|' +
 
 		// Whitespace (descendant combinator)
-		'[ \\t\\r\\n\\f](?=[\\w\\u00c0-\\uFFFF*#.[:])|' +
+		'[ \\t\\r\\n\\f](?=[\\w\\u00a1-\\uFFFF*#.[:])|' +
 
 		// Other combinators and the comma
-		'(' + combList.join('|') + ')[ \\t\\r\\n\\f]*|' +
+		'[ \\t\\r\\n\\f]*(' + combList.join('|') + ')[ \\t\\r\\n\\f]*|' +
 
 		// An attribute, with the various and optional value formats ([name], [name=value], [name="value"], [name='value']
-		'\\[([\\w\\u00c0-\\uFFFF-]+)(?:([' + operList.join('') + ']?=)(?:"([^"]*)"|\'([^\']*)\'|([^\\]]*)))?]|' +
+		'\\[([\\w\\u00a1-\\uFFFF-]+)[ \\t\\r\\n\\f]*(?:([' + operList.join('') + ']?=)[ \\t\\r\\n\\f]*(?:"([^"]*)"|\'([^\']*)\'|([^\\]]*)))?]|' +
 
 		// A pseudo-class, with various formats
-		':([-\\w\\u00c0-\\uFFFF]+)(?:\\((?:"([^"]*)"|\'([^\']*)\'|([^)]*))\\))?|' +
+		':([-\\w\\u00a1-\\uFFFF]+)(?:\\((?:"([^"]*)"|\'([^\']*)\'|([^)]*))\\))?|' +
 
 		// The universial selector, not process
-		'\\*', 'g'
+		'\\*|(.+)', 'g'
 	);
 };
 
@@ -264,10 +304,10 @@ proto.parse = function(plain) {
 
 		switch ($0.charAt(0)) {
 			case '.':
-				current.classes.push($0.slice(1));
+				current.classes.push($0.slice(1).replace(/\\/g, ''));
 				break;
 			case '#':
-				current.id = $0.slice(1);
+				current.id = $0.slice(1).replace(/\\/g, '');
 				break;
 			case '[':
 				current.attributes.push({
@@ -282,19 +322,24 @@ proto.parse = function(plain) {
 					value: match[8] || match[9] || match[10] || null
 				});
 				break;
-			case ',':
-				current.last = true;
-				refresh(null);
-				current.first = true;
-				continue;
 			case ' ': case '\t': case '\r': case '\n': case '\f':
-				match[1] = ' ';
+				match[1] = match[1] || ' ';
 			default:
 				var combinator = match[1];
 				if (combinator) {
+					if (combinator == ',') {
+						current.last = true;
+						refresh(null);
+						current.first = true;
+						continue;
+					}
 					if (current.first && !current.ident.length) current.combinator = combinator;
 					else refresh(combinator);
 				} else {
+					if (match[11]) {
+						if (Sly.verbose) throw Error('Syntax error in "' + this.text + '", unexpected character <' + $0 + '> at #' + pattern.lastIndex + ' ');
+						return (this[save] = []);
+					}
 					if ($0 != '*') current.tag = $0;
 				}
 		}
@@ -333,7 +378,7 @@ var matchId = function(node, id) {
 };
 
 var matchTag = function(node, tag) {
-	return (node.nodeName == tag);
+	return (node.nodeName.toUpperCase() == tag);
 };
 
 var prepareClass = function(name) {
@@ -391,12 +436,12 @@ proto.compute = function(selector) {
 	if (id) {
 		tagged = true;
 
-		matchSearch = chain(matchSearch, matchId, id);
+		matchSearch = chain(null, matchId, id);
 
 		search = function(context) {
 			if (context.getElementById) {
 				var el = context.getElementById(id);
-				return (el && (!nodeName || el.nodeName == nodeName)) ? [el] : [];
+				return (el && el.id == id && (!nodeName || el.nodeName.toUpperCase() == nodeName)) ? [el] : [];
 			}
 
 			var query = context.getElementsByTagName(tag || '*');
@@ -409,7 +454,7 @@ proto.compute = function(selector) {
 
 	if (classes.length > 0) {
 
-		if (!search && Sly.features.elementsByClass) {
+		if (!search && support.hasByClass) {
 
 			for (i = 0; (item = classes[i]); i++) {
 				matchSearch = chain(matchSearch, matchClass, prepareClass(item));
@@ -460,7 +505,13 @@ proto.compute = function(selector) {
 	} else if (!search) { // default engine
 
 		search = function(context) {
-			return context.getElementsByTagName('*');
+			var query = context.getElementsByTagName('*');
+			if (!support.byTagAddsComments) return query;
+			var found = [];
+			for (var i = 0, node; (node = query[i]); i++) {
+				if (node.nodeType === 1) found.push(node);
+			}
+			return found;
 		};
 
 	}
@@ -468,9 +519,10 @@ proto.compute = function(selector) {
 	for (i = 0; (item = selector.pseudos[i]); i++) {
 
 		if (item.name == 'not') { // optimised :not(), fast as possible
+			var not = Sly(item.value);
 			match = chain(match, function(node, not) {
-				return !not(node);
-			}, Sly(item.value).parse()[0].match);
+				return !not.match(node);
+			}, (not.parse().length == 1) ? not.parsed[0] : not);
 		} else {
 			var parser = pseudos[item.name];
 			// chain(match, matchAttribute, prepareAttribute(item))
@@ -615,14 +667,19 @@ var pseudos = Sly.pseudos = {
 	},
 
 	'even': function(node, value, state) {
-		return pseudos['nth-child'](node, '2n', state);
+		return pseudos['nth-child'](node, '2n+1', state);
 	},
 
 	'odd': function(node, value, state) {
-		return pseudos['nth-child'](node, '2n+1', state);
+		return pseudos['nth-child'](node, '2n', state);
 	}
 
 };
+
+pseudos.first = pseudos['first-child'];
+pseudos.last = pseudos['last-child'];
+pseudos.nth = pseudos['nth-child'];
+pseudos.eq = pseudos.index;
 
 
 /**
@@ -678,6 +735,11 @@ try {
 
 Sly.toArray = toArray;
 
+Sly.compare = (document.compareDocumentPosition) ? function (a, b) {
+	return (3 - (a.compareDocumentPosition(b) & 6));
+} : function (a, b) {
+	return (a.sourceIndex - b.sourceIndex);
+};
 
 var nextUid = 1;
 
@@ -743,3 +805,6 @@ Sly.recompile();
 return Sly;
 
 })();
+
+Sly.verbose = false;
+
