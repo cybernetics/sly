@@ -105,24 +105,25 @@
 <?php	if (strpos($_GET['function'], '%') === false):
 				$_GET['function'] = $_GET['function'] . '(%1$s, %2$s)';
 			endif; ?>
+			
+				var once = function() {
+					return <?php echo sprintf($_GET['function'], 'selector', 'context') ?>;
+				}
+				
+				var start = (new Date()).getTime(), distance = 0, comps = 0, elements;
 
-<?php	for ($i = 0; $i < 10; $i++): ?>
-				times[i]={ start:new Date() };
-				var elements = <?php echo sprintf($_GET['function'], 'selector', 'context') ?>;
-				times[i++].end = new Date();
-<?php	endfor; ?>
+				var elements = once();
+					
+				do {
+					comps++;
+					once();
+				} while ((distance = (new Date()).getTime() - start) < 1000);
 
 				var end = new Date();
 				var data = { time:0, found:get_length(elements) };
 
-				for (var N=0; N < times.length; N++) {
-					if (!times[N]) continue;
-					data.time += (times[N].end - times[N].start);
-				}
-				data.time && (data.time /= times.length);
-				data.time || (data.time=0);
+				data.ops = comps / 100;
 
-				data.time = (end - start) / i;
 				return data;
 			} catch(err){
 				if (elements == undefined) elements = {length: -1};

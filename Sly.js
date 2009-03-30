@@ -49,20 +49,18 @@ var support = Sly.support = {};
 	support.hasQsa = !!(testee.querySelectorAll && testee.querySelectorAll('.Â').length);
 	
 	support.hasByClass = (function() {
-		if (!testee.getElementsByClassName || !testee.getElementsByClassName('.b').length) return false;
+		if (!testee.getElementsByClassName || !testee.getElementsByClassName('b').length) return false;
 		testee.firstChild.className = 'c';
-		return (testee.getElementsByClassName('.c').length == 1);
+		return (testee.getElementsByClassName('c').length == 1);
 	})();
 	
-	/* not needed, checks id by default (no speed issue)
 	var root = document.documentElement;
-	testee.insertBefore(root, root.firstChild);
+	root.insertBefore(testee, root.firstChild);
 	
 	// IE returns named nodes for getElementById(name)
 	support.byIdAddsName = !!(document.getElementById(id));
 	
 	root.removeChild(testee);
-	*/
 	
 })();
 
@@ -441,7 +439,11 @@ proto.compute = function(selector) {
 		search = function(context) {
 			if (context.getElementById) {
 				var el = context.getElementById(id);
-				return (el && el.id == id && (!nodeName || el.nodeName.toUpperCase() == nodeName)) ? [el] : [];
+				return (el
+					&& (!nodeName || el.nodeName.toUpperCase() == nodeName)
+					&& (!support.getIdAdds || el.id == id))
+						? [el]
+						: [];
 			}
 
 			var query = context.getElementsByTagName(tag || '*');

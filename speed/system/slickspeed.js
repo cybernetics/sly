@@ -79,11 +79,12 @@ window.onload = function load(){
 		if (!test) return;
 		var results = test.execute(test.selector);
 		function handleResults(){
+			var ops = results && results.ops || 0;
 			test.cell.className = 'test';
-			test.cell.innerHTML = '<b>'+Math.round(results.time*10)/10 + ' ms</b><b>' + results.found + ' found</b>';
-			test.cell.speed = results.time;
+			test.cell.innerHTML = '<b>'+Math.round(ops * 10)/10 + ' ops/ms</b><b>' + results.found + ' found</b>';
+			test.cell.speed = results.ops || 0;
 			if (results.error){
-				test.cell.innerHTML = results.time + ' ms | <span class="exception" title="' + results.error + '">error returned</a>';
+				test.cell.innerHTML = ops + ' ops/s | <span class="exception" title="' + results.error + '">error returned</a>';
 				test.cell.className += ' exception';
 				test.cell.found = 0;
 				test.cell.error = true;
@@ -134,9 +135,9 @@ window.onload = function load(){
 					}
 				});
 			}
-			if (cell.found && cell.speed == min) cell.className += ' good';
+			if (cell.found && cell.speed == max) cell.className += ' good';
 			else if (!cell.found) cell.className += ' zero';
-			else if (cell.speed == max) cell.className += ' bad';
+			else if (cell.speed == min) cell.className += ' bad';
 			else cell.className += ' normal';
 		});
 		
