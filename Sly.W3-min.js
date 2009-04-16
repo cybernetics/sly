@@ -1,2 +1,0 @@
-/* Sly v1.0rc0 <http://sly.digitarald.com> - (C) 2009 Harald Kirschner <http://digitarald.de> - Open source under MIT License */
-Sly.implement("pseudos",{root:function(a){return(a.parentNode==a.ownerDocument)},target:function(a){var b=location.hash;return(a.id&&b&&a.id==b.slice(1))},"only-child":function(a,c,b){return(Sly.pseudos["first-child"](a,null,b)&&Sly.pseudos["last-child"](a,null,b))}});Sly.recompile();
