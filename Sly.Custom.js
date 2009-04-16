@@ -69,7 +69,7 @@ Sly.implement('pseudos', {
 	// http://www.w3.org/TR/css3-selectors/#only-child-pseudo
 	'only-child': function(node, value, state) {
 		return (Sly.pseudos['first-child'](node, null, state) && Sly.pseudos['last-child'](node, null, state));
-	}
+	},
 	
 	// Custom pseudos, like jQuery filter
 
