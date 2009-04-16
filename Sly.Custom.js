@@ -1,4 +1,4 @@
-/*! Sly v1.0rc0 <http://sly.digitarald.com> - (C) 2009 Harald Kirschner <http://digitarald.de> - Open source under MIT License */
+/*! Sly v1.0rc2 <http://sly.digitarald.com> - (C) 2009 Harald Kirschner <http://digitarald.de> - Open source under MIT License */
 
  Sly.implement('combinators', {
 
@@ -50,11 +50,32 @@
 
 Sly.implement('pseudos', {
 
+	// All the exhilarating w3 ideas go here for the sake of completeness.
+	// http://www.w3.org/TR/css3-selectors/#pseudo-classes
+
+	// missing: # :nth-of-type(), :nth-last-of-type(), :first-of-type, :last-of-type, :only-of-type pseudo-class
+
+	// http://www.w3.org/TR/css3-selectors/#root-pseudo
+	'root': function(node) {
+		return (node.parentNode == node.ownerDocument);
+	},
+
+	// http://www.w3.org/TR/css3-selectors/#target-pseudo
+	'target': function(node) {
+		var hash = location.hash;
+		return (node.id && hash && node.id == hash.slice(1));
+	},
+
+	// http://www.w3.org/TR/css3-selectors/#only-child-pseudo
+	'only-child': function(node, value, state) {
+		return (Sly.pseudos['first-child'](node, null, state) && Sly.pseudos['last-child'](node, null, state));
+	}
+	
 	// Custom pseudos, like jQuery filter
 
 	// Matches all elements that are hidden.
 	'hidden': function(node) {
-		return !(node.offsetWidth && node.offsetHeight);
+		return (!node.offsetWidth && !node.offsetHeight);
 	},
 
 	// Matches all elements that are visible.
@@ -109,7 +130,7 @@ Sly.implement('pseudos', {
 	}
 
 	// ... be creative and add yours ;)
-
+	
 });
 
 Sly.implement('operators', {

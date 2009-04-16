@@ -33,6 +33,7 @@ describe('Sly.parse', {
 
 	'Should parse ids': function() {
 		value_of(Sly.parse('#id')[0].id).should_be('id');
+		value_of(Sly.parse('#body')[0].id).should_be('body');
 		value_of(Sly.parse('#1st-id_0')[0].id).should_be('1st-id_0'); // actually an invalid id
 		value_of(Sly.parse('#id-head')[0].id).should_be('id-head');
 		value_of(Sly.parse(':pseudo[attribute]#id')[0].id).should_be('id');
