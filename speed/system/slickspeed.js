@@ -112,13 +112,20 @@ window.onload = function load(){
 			cells.push(td);
 		});
 		
-		var speeds = [];
-		
+		var speeds = [], sum = 0, length = 0;
+
 		forEach(cells, function(cell, i){
-			if (!cell.error) speeds[i] = cell.speed;
+			if (!cell.error) {
+				sum += cell.speed;
+				length++;
+				speeds[i] = cell.speed;
+			}
 			//error, so we exclude it from colouring
 			else speeds[i] = 99999999999999999999999;
+			
 		});
+		
+		var avg = sum / length;
 		
 		var min = Math.min.apply(this, speeds);
 		var max = Math.max.apply(this, speeds);
@@ -135,6 +142,8 @@ window.onload = function load(){
 					}
 				});
 			}
+			cell.title = cell.firstChild.innerHTML;
+			cell.firstChild.innerHTML = (Math.round(cell.speed / avg * 10) / 10) + 'x'
 			if (cell.found && cell.speed == max) cell.className += ' good';
 			else if (!cell.found) cell.className += ' zero';
 			else if (cell.speed == min) cell.className += ' bad';

@@ -2,9 +2,9 @@
 	$frameworks = parse_ini_file('config.ini', true);
 
 	$valid = true;
-	
+
 	$special_list = array('' => 'Default', 'loose' => 'Loose DOM Fragment', 'xml' => 'XML Document');
-	
+
 	$special = '';
 	if (isset($_REQUEST['special'])) {
 		if (array_key_exists($_REQUEST['special'], $special_list)) {
@@ -13,7 +13,7 @@
 			$valid = false;
 		}
 	}
-	
+
 	$css_list = array('' => 'Default', 'simple' => 'Simple', 'extended' => 'Extended', 'yahoo' => 'Yahoo (via ejohn)', 'crazy' => 'Just crazy');
 
 	$css = '';
@@ -29,21 +29,21 @@
 		header('Location: ' . $_SERVER['SCRIPT_NAME']);
 		exit;
 	}
-	
+
 	$link = $_SERVER['SCRIPT_NAME'];
-	
+
 	if (!$valid) {
 		header('Location: ' . $link);
 		exit;
 	}
-	
+
 	if ($css || $special) {
 		$build = array();
 		if ($css) $build['css'] = $css;
 		if ($special) $build['special'] = $special;
 		$link = $link . '?' . http_build_query($build, '', '&');
 	}
-	
+
 	if (count($_POST)) {
 		header('Location: ' . $link);
 		exit;
@@ -134,7 +134,7 @@
 
 	<tfoot id="tfoot">
 		<tr>
-		<th class="score-title"><strong>final time (less is better)</strong></th>
+		<th class="score-title"><strong>final ops/ms (more is better)</strong></th>
 		<?php
 			foreach ($frameworks as $framework){
 				echo "<td class='score'>0</td>";
@@ -167,16 +167,6 @@
 
 <?php include('footer.html'); ?>
 </div>
-
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-try {
-var pageTracker = _gat._getTracker("UA-601848-2");
-pageTracker._trackPageview();
-} catch(err) {}</script>
 
 </body>
 </html>
