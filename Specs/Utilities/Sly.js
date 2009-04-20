@@ -263,7 +263,7 @@ return {
 	},
 
 	'Should optional return an unordered Array': function() {
-		var items = Sly.search('dd, dt', tree, true);
+		var items = Sly.search('dd, dt', tree, null, {unordered: true});
 		value_of(items).should_have(6, 'items');
 		value_of(items[0].id).should_be('dd-1');
 		value_of(items[3].id).should_be('dt-1');
