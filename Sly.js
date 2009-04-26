@@ -88,14 +88,14 @@ proto.search = function(context, results, options) {
 		if (typeof(context) == 'string') {
 			context = Sly.search(context);
 			iterate = true;
-		} else if (context instanceof Array || (typeof(context.length) == 'number' && context.item)) { // simple isArray
+		} else if (Object.prototype.toString.call(context) == '[object Array]' || (typeof(context.length) == 'number' && context.item)) { // simple isArray
 			var filtered = [];
 			for (i = 0; (item = context[i]); i++) {
 				if (item.nodeType == 1 || item.nodeType == 9) filtered.push(item);
 			}
 			iterate = (filtered.length > 1);
 			context = (iterate) ? filtered : (filtered[0] || document);
-		}	
+		}
 	}
 	
 	var mixed, // results need to be sorted, comma
