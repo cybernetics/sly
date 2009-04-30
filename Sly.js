@@ -116,7 +116,7 @@ proto.search = function(context, results, options) {
 		for (i = 0; (item = results[i]); i++) locateCurrent(item);
 	}
 
-	if (support.hasQsa && !iterate && context.nodeType == 9) {
+	if (support.hasQsa && !iterate && context.nodeType == 9 && !(/\[/).test(this.text)) {
 		try {
 			var query = context.querySelectorAll(this.text);
 		} catch(e) {}
