@@ -219,8 +219,24 @@ This documentation is released under a Attribution-NonCommercial-ShareAlike 3.0 
 
 ## Credits
 
-It was once branched from [*MooTools*](http://mootools.net) (somewhere between 1.11 and 1.2) so it follows its architecture and uses overlapping helpers.
-
- * Thanks to [*Steven Levithan*](http://blog.stevenlevithan.com/), the master of regular expressions, for all the optimisation tips
- * Additional custom pseudo-classes on *jQuery*
+Valerio Proietti & MooTools contributors
+	- Idea of modular combinator and pseudo filters
+	- Code for several pseudo filters
+	- Slickspeed benchmark framework
+Steven Levithan
+	- Improved Sly.parse RegExp
+Diego Perini
+	- Research on querySelectorAll and browser quirks
+	- Patches for Sly.parse expression
+	- Combined tests from jQuery and Prototype
+Thomas Aylott & Slick contributors
+	- Idea of using regular expressions in attribute filter.
+John Resig & jQuery/Sizzle contributors
+	- Browser feature/quirks detection
+	- Additional pseudo filters
+	- Extensive Unit Tests
+Sam Stephenson & Prototype contributors
+	- Extensive Unit Tests
+Alan Kang & JSSpec contributors
+	- JSSpec BDD framework
 

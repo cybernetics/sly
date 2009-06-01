@@ -1,5 +1,34 @@
 /*! Sly v1.0rc2 <http://sly.digitarald.com> - (C) 2009 Harald Kirschner <http://digitarald.de> - Open source under MIT License */
 
+/**
+ * Credits
+ * 
+ * Sly's code and pattern are inspired by several open source developers.
+ * 
+ * Valerio Proietti & MooTools contributors
+ *  - Idea of modular combinator and pseudo filters
+ *  - Code for several pseudo filters
+ *  - Slickspeed benchmark framework
+ * Steven Levithan
+ *  - Improved Sly.parse RegExp
+ * Diego Perini
+ *  - Research on querySelectorAll and browser quirks
+ *  - Patches for Sly.parse expression
+ *  - Combined tests from jQuery and Prototype
+ * Thomas Aylott & Slick contributors
+ *   - Idea of using regular expressions in attribute filter.
+ * John Resig & jQuery/Sizzle contributors
+ *  - Browser feature/quirks detection
+ *  - Additional pseudo filters
+ *  - Extensive Unit Tests
+ * Sam Stephenson & Prototype contributors
+ *  - Extensive Unit Tests
+ * Alan Kang & JSSpec contributors
+ *  - JSSpec BDD framework
+ * 
+ * Kudos to every single one of them for supporting the open web.
+ */
+
 var Sly = (function() {
 
 var cache = {};
@@ -231,8 +260,8 @@ Sly.recompile = function() {
 	for (key in operators) operList.push(key);
 
 	/**
-	  The regexp is a group of every possible selector part including combinators.
-	  "|" separates the possible selectors.
+		The regexp is a group of every possible selector part including combinators.
+		"|" separates the possible selectors.
 
 		Capturing parentheses:
 		1 - Combinator (only requires to allow multiple-character combinators)
