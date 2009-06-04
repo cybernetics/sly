@@ -10,7 +10,7 @@
  *  - Code for several pseudo filters
  *  - Slickspeed benchmark framework
  * Steven Levithan
- *  - Improved Sly.parse RegExp
+ *  - Improved Sly.parse expression
  * Diego Perini
  *  - Research on querySelectorAll and browser quirks
  *  - Patches for Sly.parse expression
@@ -20,9 +20,9 @@
  * John Resig & jQuery/Sizzle contributors
  *  - Browser feature/quirks detection
  *  - Additional pseudo filters
- *  - Extensive Unit Tests
+ *  - Extensive Unit Tests, (c) 2008 John Resig, Jörn Zaefferer, MIT/GPL dual license
  * Sam Stephenson & Prototype contributors
- *  - Extensive Unit Tests
+ *  - Extensive Unit Tests, (c) 2005-2008 Sam Stephenson, MIT-style license
  * Alan Kang & JSSpec contributors
  *  - JSSpec BDD framework
  * 
@@ -604,6 +604,7 @@ proto.compute = function(selector) {
 	return selector;
 };
 
+// Combinators/Pseudos partly from MooTools 1.2-pre, (c) 2006-2009 Valerio Proietti, MIT License
 
 /**
  * Combinators
