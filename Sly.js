@@ -40,7 +40,7 @@ var cache = {};
  */
 var Sly = function(text, context, results, options) {
 	// normalise
-	text = (typeof(text) == 'string') ? text.replace(/^\s+|\s+$/, '') : '';
+	text = (typeof(text) == 'string') ? text.replace(/^\s+|\s+$/g, '') : '';
 	
 	var cls = cache[text] || (cache[text] = new Sly.initialize(text));
 	return (context == null) ? cls : cls.search(context, results, options);
